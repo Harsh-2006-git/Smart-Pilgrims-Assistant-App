@@ -3,8 +3,10 @@
 
 ---
 <img width="1879" height="904" alt="image" src="https://github.com/user-attachments/assets/975ae634-f6e6-4fc7-9bfc-5739b0f02c26" />
+
 ---
 Live demo Link: https://divya-yatra-devsprint-17xh.vercel.app/
+
 ---
 
 ## ✨ Features We Offer
