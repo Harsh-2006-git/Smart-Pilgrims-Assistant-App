@@ -32,7 +32,20 @@ const Header = () => {
     const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
     const guideRef = useRef(null);
     const langRef = useRef(null);
+    const headerRef = useRef(null);
     const [user, setUser] = useState(null);
+
+    // Set header height CSS variable for alert ticker positioning
+    useEffect(() => {
+        const updateHeaderHeight = () => {
+            if (headerRef.current) {
+                document.documentElement.style.setProperty('--header-height', `${headerRef.current.offsetHeight}px`);
+            }
+        };
+        updateHeaderHeight();
+        window.addEventListener('resize', updateHeaderHeight);
+        return () => window.removeEventListener('resize', updateHeaderHeight);
+    }, [isScrolled]);
 
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
@@ -187,6 +200,7 @@ const Header = () => {
             <div id="google_translate_element_hidden" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} />
 
             <header
+                ref={headerRef}
                 style={{ top: `${headerTop}px` }}
                 className={`fixed left-0 w-full z-50 bg-white border-b border-gray-100 transition-all duration-300 ${isScrolled ? "py-2 shadow-md" : "py-3 shadow-sm"}`}
             >

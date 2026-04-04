@@ -5,6 +5,7 @@ import {
     getAllTickets,
     getAllLostFound,
     getZoneDensity,
+    getSignageData,
     createAlert,
     getAllAlerts,
     toggleAlert,
@@ -28,6 +29,7 @@ router.get("/users", authenticateClient, getAllUsers);
 router.get("/tickets", authenticateClient, getAllTickets);
 router.get("/lostfound", authenticateClient, getAllLostFound);
 router.get("/density", authenticateClient, getZoneDensity);
+router.get("/signage", authenticateClient, getSignageData);
 
 // Alert CRUD
 router.post("/alerts", authenticateClient, createAlert);
@@ -36,3 +38,4 @@ router.put("/alerts/:id/toggle", authenticateClient, toggleAlert);
 router.delete("/alerts/:id", authenticateClient, deleteAlert);
 
 export default router;
+

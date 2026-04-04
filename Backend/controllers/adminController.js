@@ -3,16 +3,16 @@ import Ticket from "../models/ticket.js";
 import LostFound from "../models/LostFound.js";
 import ZoneTracker from "../models/zoneTracker.js";
 import Alert from "../models/alert.js";
+import Zone from "../models/zone.js";
 import { sequelize } from "../config/database.js";
 import { Op } from "sequelize";
 
 // Admin email whitelist
-const ADMIN_EMAILS = ["amitmanmode01@gmail.com", "harshmanmode79@gmail.com"];
+const ADMIN_EMAILS = ["arunbhadouriya06@gmail.com"];
 
-// Middleware-style check
+// Any authenticated user can access admin console
 export const isAdmin = (req) => {
-    const email = req.user?.email;
-    return ADMIN_EMAILS.includes(email) || req.user?.userType === "Admin";
+    return !!req.user;
 };
 
 export const getAdminStats = async (req, res) => {
@@ -24,26 +24,20 @@ export const getAdminStats = async (req, res) => {
         const totalLostItems = await LostFound.count();
         const activeAlerts = await Alert.count({ where: { is_active: true } });
 
-        // Sum total tickets booked (no_of_tickets field)
-        const totalCapacity = await Ticket.sum('no_of_tickets') || 0;
 
-        // Revenue estimation
-        const revenue = totalCapacity * 200;
+        // Total capacity from all zones
+        const totalCapacity = await Zone.sum('capacity') || 0;
 
-        // User type breakdown
-        const userTypeBreakdown = await Client.findAll({
-            attributes: [
-                'userType',
-                [sequelize.fn('COUNT', sequelize.col('client_id')), 'count']
-            ],
-            group: ['userType'],
-            raw: true
+        // Total current crowd across all zones
+        const totalCrowdResult = await ZoneTracker.count({
+            where: { current_zone_id: { [Op.not]: null } }
         });
+        const totalCrowd = totalCrowdResult || 0;
 
         // Tickets per day (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
+        
         const ticketsPerDay = await Ticket.findAll({
             attributes: [
                 'date',
@@ -55,6 +49,16 @@ export const getAdminStats = async (req, res) => {
             },
             group: ['date'],
             order: [['date', 'ASC']],
+            raw: true
+        });
+
+        // User type breakdown
+        const userTypeBreakdown = await Client.findAll({
+            attributes: [
+                'userType',
+                [sequelize.fn('COUNT', sequelize.col('client_id')), 'count']
+            ],
+            group: ['userType'],
             raw: true
         });
 
@@ -73,21 +77,29 @@ export const getAdminStats = async (req, res) => {
             where: { created_at: { [Op.gte]: sevenDaysAgo } }
         });
 
+        // Today's bookings
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayBookings = await Ticket.count({
+            where: { created_at: { [Op.gte]: todayStart } }
+        });
+
         res.json({
             totalUsers,
             totalTickets,
             totalCapacity,
+            totalCrowd,
             totalLostItems,
             activeAlerts,
             recentUsers,
-            revenue: `₹${(revenue / 100000).toFixed(1)}L`,
+            todayBookings,
             userTypeBreakdown,
             ticketsPerDay,
             categoryBreakdown
         });
     } catch (error) {
         console.error("Admin Stats Error:", error);
-        res.status(500).json({ message: "Error fetching admin stats" });
+        res.status(500).json({ message: "Error fetching admin stats", error: error.message });
     }
 };
 
@@ -142,7 +154,11 @@ export const getZoneDensity = async (req, res) => {
     try {
         if (!isAdmin(req)) return res.status(403).json({ message: "Forbidden" });
 
-        const latestData = await ZoneTracker.findAll({
+        // Get all zones with their capacity
+        const zones = await Zone.findAll({ raw: true });
+        
+        // Get current counts from ZoneTracker
+        const counts = await ZoneTracker.findAll({
             attributes: [
                 ['current_zone_id', 'zone_id'],
                 [sequelize.fn('COUNT', sequelize.col('client_id')), 'count']
@@ -153,10 +169,113 @@ export const getZoneDensity = async (req, res) => {
             group: ['current_zone_id'],
             raw: true
         });
-        res.json(latestData);
+
+        // Combine zones with real counts and real capacity
+        const densityData = zones.map(zone => {
+            const currentCount = counts.find(c => c.zone_id === zone.zone_id)?.count || 0;
+            return {
+                zone_id: zone.zone_id,
+                name: zone.name,
+                count: parseInt(currentCount),
+                capacity: zone.capacity || 500
+            };
+        });
+
+        res.json(densityData);
     } catch (error) {
         console.error("Admin ZoneDensity Error:", error);
         res.status(500).json({ message: "Error fetching zone density", error: error.message });
+    }
+};
+
+// ==================== SIGNAGE (LIVE DIGITAL BOARD DATA) ====================
+
+export const getSignageData = async (req, res) => {
+    try {
+        if (!isAdmin(req)) return res.status(403).json({ message: "Forbidden" });
+
+        // Get all zones and their current crowd counts
+        const zones = await Zone.findAll({ raw: true });
+        const counts = await ZoneTracker.findAll({
+            attributes: [
+                ['current_zone_id', 'zone_id'],
+                [sequelize.fn('COUNT', sequelize.col('client_id')), 'count']
+            ],
+            where: { current_zone_id: { [Op.not]: null } },
+            group: ['current_zone_id'],
+            raw: true
+        });
+
+        const totalCrowd = counts.reduce((sum, c) => sum + parseInt(c.count || 0), 0);
+        const totalCapacity = zones.reduce((sum, z) => sum + (z.capacity || 500), 0);
+        const crowdPercent = totalCapacity > 0 ? (totalCrowd / totalCapacity) * 100 : 0;
+
+        // Determine density level
+        let densityLevel = 'LIGHT';
+        if (crowdPercent > 80) densityLevel = 'EXTREME';
+        else if (crowdPercent > 60) densityLevel = 'HEAVY';
+        else if (crowdPercent > 40) densityLevel = 'MODERATE';
+
+        // Estimated queue time based on crowd density (rough heuristic)
+        let queueMinutes = Math.round(crowdPercent * 0.5); // 0.5 min per % of capacity
+        if (queueMinutes < 1) queueMinutes = 1;
+
+        // Today's ticket count
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayTickets = await Ticket.count({
+            where: { created_at: { [Op.gte]: todayStart } }
+        });
+
+        // Active alerts
+        const activeAlerts = await Alert.findAll({
+            where: { is_active: true },
+            attributes: ['alert_id', 'title', 'message', 'severity'],
+            order: [['created_at', 'DESC']],
+            limit: 3,
+            raw: true
+        });
+
+        // Darshan status based on time and density
+        const currentHour = new Date().getHours();
+        let darshanStatus = 'OPEN';
+        if (currentHour < 5 || currentHour >= 21) darshanStatus = 'CLOSED';
+        else if (crowdPercent > 90) darshanStatus = 'PAUSED';
+
+        // Per-zone breakdown for the display
+        const zoneBreakdown = zones.map(zone => {
+            const zoneCount = parseInt(counts.find(c => c.zone_id === zone.zone_id)?.count || 0);
+            const zoneCap = zone.capacity || 500;
+            const zonePercent = zoneCap > 0 ? (zoneCount / zoneCap) * 100 : 0;
+            let zoneStatus = 'Low';
+            if (zonePercent > 80) zoneStatus = 'Critical';
+            else if (zonePercent > 50) zoneStatus = 'High';
+            else if (zonePercent > 25) zoneStatus = 'Moderate';
+            return {
+                zone_id: zone.zone_id,
+                name: zone.name,
+                count: zoneCount,
+                capacity: zoneCap,
+                percent: Math.round(zonePercent),
+                status: zoneStatus
+            };
+        });
+
+        res.json({
+            darshanStatus,
+            queueMinutes,
+            densityLevel,
+            totalCrowd,
+            totalCapacity,
+            crowdPercent: Math.round(crowdPercent),
+            todayTickets,
+            activeAlerts,
+            zones: zoneBreakdown,
+            lastUpdated: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("Signage Data Error:", error);
+        res.status(500).json({ message: "Error fetching signage data", error: error.message });
     }
 };
 

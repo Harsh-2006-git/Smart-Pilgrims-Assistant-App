@@ -8,9 +8,8 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { API_V1, resolveMediaUrl } from '../config/api';
 
-const BACKEND_URL = `${API_V1}/admin`;
+const BACKEND_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/v1/admin`;
 
 // ==================== MINI BAR CHART COMPONENT ====================
 const MiniBarChart = ({ data, label, color = '#f97316' }) => {
@@ -186,7 +185,7 @@ const AdminPage = () => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalUsers: 0, activeTickets: 0, reportedItems: 0,
-        activeAlerts: 0, revenue: '₹0.0L', recentUsers: 0,
+        activeAlerts: 0, recentUsers: 0, todayBookings: 0,
         userTypeBreakdown: [], ticketsPerDay: [], categoryBreakdown: []
     });
     const [users, setUsers] = useState([]);
@@ -197,6 +196,7 @@ const AdminPage = () => {
     const [showAlertComposer, setShowAlertComposer] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+    const [signageData, setSignageData] = useState(null);
 
     const getHeaders = () => {
         const token = localStorage.getItem('token');
@@ -210,13 +210,14 @@ const AdminPage = () => {
         const headers = getHeaders();
 
         try {
-            const [statsRes, usersRes, lostRes, ticketsRes, densityRes, alertsRes] = await Promise.allSettled([
+            const [statsRes, usersRes, lostRes, ticketsRes, densityRes, alertsRes, signageRes] = await Promise.allSettled([
                 fetch(`${BACKEND_URL}/stats`, { headers }),
                 fetch(`${BACKEND_URL}/users`, { headers }),
                 fetch(`${BACKEND_URL}/lostfound`, { headers }),
                 fetch(`${BACKEND_URL}/tickets`, { headers }),
                 fetch(`${BACKEND_URL}/density`, { headers }),
-                fetch(`${BACKEND_URL}/alerts`, { headers })
+                fetch(`${BACKEND_URL}/alerts`, { headers }),
+                fetch(`${BACKEND_URL}/signage`, { headers })
             ]);
 
             if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
@@ -226,8 +227,8 @@ const AdminPage = () => {
                     activeTickets: s.totalTickets || 0,
                     reportedItems: s.totalLostItems || 0,
                     activeAlerts: s.activeAlerts || 0,
-                    revenue: s.revenue || '₹0.0L',
                     recentUsers: s.recentUsers || 0,
+                    todayBookings: s.todayBookings || 0,
                     userTypeBreakdown: s.userTypeBreakdown || [],
                     ticketsPerDay: s.ticketsPerDay || [],
                     categoryBreakdown: s.categoryBreakdown || []
@@ -239,6 +240,7 @@ const AdminPage = () => {
             if (ticketsRes.status === 'fulfilled' && ticketsRes.value.ok) setBookings(await ticketsRes.value.json());
             if (densityRes.status === 'fulfilled' && densityRes.value.ok) setZoneData(await densityRes.value.json());
             if (alertsRes.status === 'fulfilled' && alertsRes.value.ok) setAlerts(await alertsRes.value.json());
+            if (signageRes.status === 'fulfilled' && signageRes.value.ok) setSignageData(await signageRes.value.json());
 
         } catch (error) {
             console.error("Admin fetch error:", error);
@@ -293,7 +295,14 @@ const AdminPage = () => {
         }
     };
 
-    const getImageUrl = (path) => resolveMediaUrl(path);
+    const getImageUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const normalized = path.startsWith('/') ? path : `/${path}`;
+        if (!normalized.startsWith('/uploads/')) return `${base}/uploads${normalized}`;
+        return `${base}${normalized}`;
+    };
 
     const filteredUsers = users.filter(u =>
         u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -408,9 +417,9 @@ const AdminPage = () => {
                                         <p className="text-[8px] text-slate-500 font-bold">Last 7 days</p>
                                     </div>
                                     <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Revenue</p>
-                                        <p className="text-xl font-black text-emerald-400">{stats.revenue}</p>
-                                        <p className="text-[8px] text-slate-500 font-bold">Total earned</p>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Today</p>
+                                        <p className="text-xl font-black text-emerald-400">{stats.todayBookings}</p>
+                                        <p className="text-[8px] text-slate-500 font-bold">Bookings today</p>
                                     </div>
                                 </div>
                             </div>
@@ -523,20 +532,18 @@ const AdminPage = () => {
                                                 <Activity size={20} className="text-orange-500" /> Zone Capacity Overview
                                             </h3>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                {[
-                                                    { zone: 'Main Sanctum', count: 420, cap: 500, color: 'bg-orange-500' },
-                                                    { zone: 'Nandi Hall', count: 180, cap: 300, color: 'bg-blue-500' },
-                                                    { zone: 'Mahakal Corridor', count: 1200, cap: 5000, color: 'bg-emerald-500' },
-                                                    { zone: 'Outer Entry', count: 85, cap: 200, color: 'bg-purple-500' }
-                                                ].map((z, idx) => (
-                                                    <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{z.zone}</p>
+                                                {(zoneData && zoneData.length > 0 ? zoneData : [
+                                                    { name: 'Loading Zones...', count: 0, capacity: 100, color: 'bg-slate-300' }
+                                                ]).map((z, idx) => (
+                                                    <div key={z.zone_id || idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{z.name}</p>
                                                         <div className="flex items-end justify-between mb-2">
                                                             <span className="text-2xl font-black text-slate-800">{z.count}</span>
-                                                            <span className="text-[10px] font-bold text-slate-400">/ {z.cap}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400">/ {z.capacity}</span>
                                                         </div>
                                                         <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                                            <div className={`h-full ${z.color} rounded-full transition-all duration-1000`} style={{ width: `${(z.count / z.cap) * 100}%` }} />
+                                                            <div className={`h-full ${['bg-orange-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500'][idx % 5]} rounded-full transition-all duration-1000`} 
+                                                                style={{ width: `${Math.min((z.count / z.capacity) * 100, 100)}%` }} />
                                                         </div>
                                                     </div>
                                                 ))}
@@ -838,50 +845,80 @@ const AdminPage = () => {
 
                                 {/* ========== SIGNAGE TAB ========== */}
                                 {activeTab === 'signage' && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-[2rem] flex items-center justify-center mb-6">
-                                                <Monitor size={40} />
+                                    <div className="space-y-6">
+                                        <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center">
+                                                    <Monitor size={28} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-2xl font-black tracking-tight">Digital Signage</h3>
+                                                    <p className="text-slate-400 text-xs font-bold">Live data • Updated: {signageData ? new Date(signageData.lastUpdated).toLocaleTimeString('en-IN') : '—'}</p>
+                                                </div>
                                             </div>
-                                            <h3 className="text-2xl font-black mb-3 tracking-tight">Digital Signage</h3>
-                                            <p className="text-slate-500 text-sm mb-8">Control display boards across all temple zones</p>
-                                            <div className="w-full space-y-3">
-                                                <button className="w-full py-4 bg-orange-50 text-orange-700 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-orange-100 transition-all">
-                                                    <Bell size={16} /> Push Crowd Alert Board
-                                                </button>
-                                                <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all">
-                                                    <Shield size={16} /> Show Route Guidance
-                                                </button>
-                                                <button className="w-full py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
-                                                    <AlertTriangle size={16} /> Emergency Evacuation Mode
+                                            <div>
+                                                <button onClick={() => setShowAlertComposer(true)} className="py-4 px-6 bg-orange-50 text-orange-700 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-orange-100 transition-all">
+                                                    <Bell size={16} /> Push Crowd Alert
                                                 </button>
                                             </div>
                                         </div>
-
-                                        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative flex flex-col overflow-hidden">
-                                            <div className="flex justify-between items-center mb-8">
-                                                <h3 className="text-lg font-bold flex items-center gap-2">
-                                                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /> Live Preview
-                                                </h3>
-                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Board #04</span>
-                                            </div>
-                                            <div className="flex-1 flex flex-col items-center justify-center border-2 border-slate-800 rounded-[2rem] p-6 bg-slate-950/50">
-                                                <h2 className="text-3xl font-black text-center mb-4 leading-tight">
-                                                    SANCTUM <span className="text-orange-500">DARSHAN</span> OPEN
-                                                </h2>
-                                                <div className="grid grid-cols-2 gap-4 w-full mt-6">
-                                                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
-                                                        <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Queue Time</p>
-                                                        <p className="text-xl font-bold text-orange-400">12 MINS</p>
-                                                    </div>
-                                                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
-                                                        <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Density</p>
-                                                        <p className="text-xl font-bold text-emerald-400">LIGHT</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative flex flex-col overflow-hidden">
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <h3 className="text-lg font-bold flex items-center gap-2">
+                                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /> Live Preview
+                                                    </h3>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Real-Time</span>
+                                                </div>
+                                                <div className="flex-1 flex flex-col items-center justify-center border-2 border-slate-800 rounded-[2rem] p-6 bg-slate-950/50">
+                                                    <h2 className="text-3xl font-black text-center mb-4 leading-tight">
+                                                        SANCTUM <span className={signageData?.darshanStatus === 'OPEN' ? 'text-emerald-400' : signageData?.darshanStatus === 'PAUSED' ? 'text-amber-400' : 'text-rose-400'}>DARSHAN</span> {signageData?.darshanStatus || '—'}
+                                                    </h2>
+                                                    <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                                                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Queue Time</p>
+                                                            <p className="text-xl font-bold text-orange-400">{signageData?.queueMinutes ?? '—'} MINS</p>
+                                                        </div>
+                                                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Density</p>
+                                                            <p className={`text-xl font-bold ${signageData?.densityLevel === 'LIGHT' ? 'text-emerald-400' : signageData?.densityLevel === 'MODERATE' ? 'text-amber-400' : 'text-rose-400'}`}>{signageData?.densityLevel || '—'}</p>
+                                                        </div>
+                                                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Total Crowd</p>
+                                                            <p className="text-xl font-bold text-blue-400">{signageData?.totalCrowd ?? 0}</p>
+                                                        </div>
+                                                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Today Tickets</p>
+                                                            <p className="text-xl font-bold text-purple-400">{signageData?.todayTickets ?? 0}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-600/10 rounded-full blur-3xl" />
                                             </div>
-                                            <p className="mt-6 text-center text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em]">Hardware ID: OREO-DISPLAY-01-V2</p>
-                                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-600/10 rounded-full blur-3xl" />
+                                            <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm">
+                                                <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                                                    <Activity size={18} className="text-orange-500" /> Zone Status
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {(signageData?.zones || []).map((z, idx) => (
+                                                        <div key={z.zone_id || idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="font-bold text-sm text-slate-800">{z.name}</span>
+                                                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${z.status === 'Critical' ? 'bg-rose-100 text-rose-600' : z.status === 'High' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>{z.status}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                                    <div className={`h-full rounded-full transition-all duration-700 ${z.percent > 80 ? 'bg-rose-500' : z.percent > 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(z.percent, 100)}%` }} />
+                                                                </div>
+                                                                <span className="text-xs font-black text-slate-500 w-16 text-right">{z.count}/{z.capacity}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {(!signageData?.zones || signageData.zones.length === 0) && (
+                                                        <div className="py-8 text-center text-slate-300 font-bold">No zone data available</div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
