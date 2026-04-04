@@ -59,9 +59,12 @@ app.use(
   })
 );
 
+// Proxy must come BEFORE json() to avoid proxy body stream starvation
+app.use("/api/v1/crowd", crowdRoutes);
+
 // Middleware - FIX 2: Correct order
-app.use(json());
-app.use(express.urlencoded({ extended: true })); // Move this up before routes
+app.use(json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // Move this up before routes
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }, // FIX 3: Allow cross-origin resources
@@ -82,7 +85,6 @@ app.get("/test-upload/:filename", (req, res) => {
 });
 
 // Routes
-app.use("/api/v1/crowd", crowdRoutes);
 app.get("/", (req, res) => {
   res.send("hello");
 });

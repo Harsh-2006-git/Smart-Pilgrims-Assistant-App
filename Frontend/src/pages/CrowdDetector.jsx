@@ -28,7 +28,11 @@ const CrowdDetector = () => {
             const data = await res.json();
             console.log('AI Status:', data);
             setStatus(data);
-            setIsStreaming(data.camera_active);
+            
+            // Only let the server dictate the stream state if we are tracking an uploaded video
+            if (mode === 'video') {
+                setIsStreaming(data.camera_active);
+            }
         } catch (err) {
             console.error('Backend not reachable:', err);
         }
