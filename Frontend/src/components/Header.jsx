@@ -169,6 +169,7 @@ const Header = () => {
         { name: "Services", target: "services" },
         { name: "Parking", target: "/parking" },
         { name: "Contact", target: "contact" },
+        { name: "Admin Console", target: "/admin" },
     ];
 
     return (

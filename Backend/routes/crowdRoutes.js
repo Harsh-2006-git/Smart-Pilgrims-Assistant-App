@@ -8,38 +8,13 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CROWD_BACKEND_URL = "http://127.0.0.1:5773";
+const CROWD_BACKEND_URL = process.env.CROWD_SERVICE_URL || "http://127.0.0.1:5773";
 
-// AI Process Management
-let aiProcess = null;
-
+// The Crowd Detection Service is now deployed independently from the Node.js backend.
+// Simply set CROWD_SERVICE_URL in your .env file to point to your new python service endpoint.
 
 export const initCrowdAI = (backendPath) => {
-    if (process.env.VERCEL) {
-        console.warn("⚠️ AI Core disabled in Vercel Serverless Mode. Please deploy the Python AI service separately and update CROWD_BACKEND_URL.");
-        return;
-    }
-
-    if (aiProcess) return;
-
-    const pythonPath = process.platform === "win32" ? "py" : "python3";
-    const scriptPath = path.join(backendPath, "AI_Core", "crowd_engine.py");
-
-    // Fix for DeprecationWarning and Security: verify python exists or use shell: false
-    // Using shell: false is safer and removes the warning
-    aiProcess = spawn(pythonPath, [scriptPath], {
-        stdio: "inherit",
-        shell: false,
-        cwd: path.join(backendPath, "AI_Core")
-    });
-
-    aiProcess.on("error", (err) => {
-        console.error("❌ AI Core failed to ignite:", err);
-    });
-
-    process.on("exit", () => {
-        if (aiProcess) aiProcess.kill();
-    });
+    console.log(`📡 Connecting to Crowd AI Service at ${CROWD_BACKEND_URL}`);
 };
 
 // Proxy Middleware for AI Endpoints
