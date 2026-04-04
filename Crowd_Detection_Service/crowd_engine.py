@@ -353,7 +353,9 @@ def get_upload_zones(token):
     return jsonify({"total": sess['total'], "zones": []}) if sess else jsonify({"total": 0})
 
 if __name__ == '__main__':
-    load_yolo()
+    # Load YOLO in a background thread so the server binds the port instantly for Render/Railway
+    threading.Thread(target=load_yolo, daemon=True).start()
+    
     port = int(os.environ.get('PORT', 5773))
     # Bind to 0.0.0.0 to allow external web traffic when deployed on Railway/Render/AWS
-    app.run(host='0.0.0.0', port=port, threaded=True)
+    app.run(host='0.0.0.0', port=port, threaded=True, debug=False)
