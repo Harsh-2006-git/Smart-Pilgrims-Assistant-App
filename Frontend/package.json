@@ -34,6 +34,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-oauth/google": "^0.13.4",
     "@tailwindcss/vite": "^4.1.11",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
