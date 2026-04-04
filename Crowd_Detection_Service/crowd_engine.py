@@ -6,6 +6,7 @@ import time
 import os
 import json
 import uuid
+import base64
 
 # Use relative paths from Backend/AI_Core
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -311,6 +312,70 @@ def stop_camera():
 @app.route('/api/zones')
 def get_zones():
     return jsonify(current_zone_data)
+
+@app.route('/api/process_frame', methods=['POST'])
+def process_client_frame():
+    try:
+        data = request.json
+        if not data or 'image' not in data:
+            return jsonify({"error": "No image provided"}), 400
+            
+        # Decode the base64 image (format expected: data:image/jpeg;base64,....)
+        image_data = data['image']
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+            
+        img_bytes = base64.b64decode(image_data)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            return jsonify({"error": "Invalid image"}), 400
+            
+        # Process the frame using our existing AI detection logic
+        # Small resize for processing speed
+        frame = cv2.resize(frame, (640, 480))
+        processed_frame, count, boxes = detect_people(frame)
+        
+        # Build zone data manually exactly like camera worker does
+        rows, cols = 3, 3
+        frame_h, frame_w = processed_frame.shape[:2]
+        zone_counts = [[0] * cols for _ in range(rows)]
+
+        for (x, y, w, h, _conf) in boxes:
+            center_x = x + w // 2
+            center_y = y + h // 2
+            col_idx = min(int(center_x / frame_w * cols), cols - 1)
+            row_idx = min(int(center_y / frame_h * rows), rows - 1)
+            zone_counts[row_idx][col_idx] += 1
+
+        new_zones = []
+        for r in range(rows):
+            for c in range(cols):
+                z_count = zone_counts[r][c]
+                level = "Low" if z_count < 2 else "Medium" if z_count < 5 else "High"
+                new_zones.append({
+                    "id": f"Z{r * cols + c + 1}",
+                    "count": z_count,
+                    "level": level,
+                    "row": r,
+                    "col": c
+                })
+        
+        # Encode the drawn image back to base64
+        _, buffer = cv2.imencode('.jpg', processed_frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        out_base64 = base64.b64encode(buffer).decode('utf-8')
+        
+        return jsonify({
+            "status": "success",
+            "image": f"data:image/jpeg;base64,{out_base64}",
+            "total": count,
+            "zones": new_zones,
+            "detection_mode": "YOLOv8 Full Body" if YOLO_AVAILABLE else "HOG Body"
+        })
+    except Exception as e:
+        print(f"Error processing frame: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # ── Video Upload ────────────────────────────────────────────────────────────────
 upload_sessions = {}

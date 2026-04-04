@@ -15,6 +15,9 @@ const CrowdDetector = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [isStarting, setIsStarting] = useState(false);
     const fileInputRef = useRef(null);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+    const [processedImage, setProcessedImage] = useState(null);
 
     const BACKEND_URL = `${API_V1}/crowd`;
 
@@ -50,10 +53,10 @@ const CrowdDetector = () => {
         // Initial check
         updateStatus();
 
-        // Poll status and zone data
+        // Poll status and zone data IF video mode (camera zones now come from process_frame)
         const interval = setInterval(() => {
-            updateStatus();
-            if (isStreaming) {
+            if (!isStreaming) updateStatus(); // Only poke status if offline
+            if (isStreaming && mode === 'video') {
                 fetchZoneData();
             }
         }, 2000);
@@ -61,20 +64,57 @@ const CrowdDetector = () => {
         return () => clearInterval(interval);
     }, [isStreaming, mode, sessionToken]);
 
+    // NEW: Client Streaming Loop
+    useEffect(() => {
+        let frameInterval;
+        if (isStreaming && mode === 'camera') {
+            frameInterval = setInterval(async () => {
+                if (videoRef.current && canvasRef.current) {
+                    const video = videoRef.current;
+                    const canvas = canvasRef.current;
+                    if (video.videoWidth > 0) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const base64Image = canvas.toDataURL('image/jpeg', 0.6); // 60% quality
+
+                        try {
+                            const res = await fetch(`${BACKEND_URL}/api/process_frame`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ image: base64Image })
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.status === 'success') {
+                                    setProcessedImage(data.image);
+                                    setZones({ total: data.total, zones: data.zones });
+                                    setStatus(prev => ({ ...prev, detection_mode: data.detection_mode, status: 'online', camera_active: true }));
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Frame processing failed:', err);
+                        }
+                    }
+                }
+            }, 300); // Process ~3 frames a second
+        }
+        return () => clearInterval(frameInterval);
+    }, [isStreaming, mode]);
+
     const handleStartCamera = async () => {
         setIsStarting(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/api/start`);
-            const data = await res.json();
-            if (res.ok) {
-                setIsStreaming(true);
-                // Wait a moment for the thread to actually start grabbing frames
-                setTimeout(updateStatus, 1000);
-            } else {
-                alert(data.message || 'Failed to start camera');
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
             }
+            setIsStreaming(true);
+            setStatus(prev => ({ ...prev, camera_active: true, status: 'online' }));
         } catch (err) {
-            alert('Could not connect to detection backend. AI Core might be offline.');
+            alert('Failed to access webcam. Please allow camera permissions.');
+            console.error(err);
         } finally {
             setIsStarting(false);
         }
@@ -82,11 +122,18 @@ const CrowdDetector = () => {
 
     const handleStopCamera = async () => {
         try {
-            const res = await fetch(`${BACKEND_URL}/api/stop`);
-            if (res.ok) {
-                setIsStreaming(false);
-                updateStatus();
+            setIsStreaming(false);
+            setProcessedImage(null);
+            
+            if (videoRef.current && videoRef.current.srcObject) {
+                const tracks = videoRef.current.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                videoRef.current.srcObject = null;
             }
+            setStatus(prev => ({ ...prev, camera_active: false }));
+            
+            // Optionally tell the backend to stop any residual workers
+            await fetch(`${BACKEND_URL}/api/stop`);
         } catch (err) {
             console.error(err);
         }
@@ -165,9 +212,13 @@ const CrowdDetector = () => {
                     {/* Main Stream Area */}
                     <div className="lg:col-span-2 space-y-4 md:space-y-6">
                         <div className="relative aspect-[4/5] md:aspect-video bg-black rounded-3xl md:rounded-[2rem] overflow-hidden border border-gray-200 shadow-2xl group">
+                            {/* Hidden elements for client frame streaming */}
+                            <video ref={videoRef} autoPlay playsInline muted className="hidden" />
+                            <canvas ref={canvasRef} className="hidden" />
+                            
                             {isStreaming ? (
                                 <img
-                                    src={mode === 'camera' ? `${BACKEND_URL}/video_feed` : `${BACKEND_URL}/uploaded_feed/${sessionToken}`}
+                                    src={mode === 'camera' ? (processedImage || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=") : `${BACKEND_URL}/uploaded_feed/${sessionToken}`}
                                     alt="Live Stream"
                                     className="w-full h-full object-contain"
                                 />
