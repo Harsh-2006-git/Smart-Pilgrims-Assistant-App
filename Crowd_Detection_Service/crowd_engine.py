@@ -354,4 +354,6 @@ def get_upload_zones(token):
 
 if __name__ == '__main__':
     load_yolo()
-    app.run(host='127.0.0.1', port=5773, threaded=True)
+    port = int(os.environ.get('PORT', 5773))
+    # Bind to 0.0.0.0 to allow external web traffic when deployed on Railway/Render/AWS
+    app.run(host='0.0.0.0', port=port, threaded=True)
