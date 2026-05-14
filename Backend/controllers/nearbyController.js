@@ -14,7 +14,7 @@ export const getNearbyPlaces = async (req, res, next) => {
 
         const apiKey = process.env.GEOAPIFY_API_KEY;
         if (!apiKey) {
-            return res.status(500).json({ error: 'Geoapify API key not configured' });
+            return next(new Error('Geoapify API key not configured'));
         }
 
         // Map categories to Geoapify place categories

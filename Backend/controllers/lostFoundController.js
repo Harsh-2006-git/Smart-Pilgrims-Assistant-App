@@ -27,8 +27,8 @@ export const getLostFoundItems = async (req, res, next) => {
     const items = await LostFound.findAll({
       order: [["uploadedAt", "DESC"]],
     });
-    if (!items) {
-      res.status(500).json({ success: false, message: "NO item available" });
+    if (!items || items.length === 0) {
+      return res.status(404).json({ success: false, message: "No items available" });
     }
     res.json({ success: true, items });
   } catch (error) {
