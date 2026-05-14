@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import express, { json, response } from "express";
 import { connectDB, sequelize } from "./config/database.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import { globalLimiter } from "./middlewares/rateLimiter.js";
 
 import helmet from "helmet";
 import authRoutes from "./routes/authRoutes.js";
@@ -87,6 +88,9 @@ app.get("/test-upload/:filename", (req, res) => {
     }
   });
 });
+
+// Apply global rate limiter
+app.use(globalLimiter);
 
 // Routes
 app.use("/api/v1/crowd", crowdRoutes);

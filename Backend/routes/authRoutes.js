@@ -7,11 +7,12 @@ import { profileStorage } from "../config/cloudinary.js";
 const upload = multer({ storage: profileStorage });
 
 import authenticateClient from "../middlewares/authMiddleware.js";
+import { authLimiter } from "../middlewares/rateLimiter.js";
 const router = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
-router.get("/profile", authenticateClient, async (req, res) => {
+router.post("/register", authLimiter, register);
+router.post("/login", authLimiter, login);
+router.get("/profile", authenticateClient, async (req, res, next) => {
   try {
     if (!req.user || req.user.firebaseOnly) {
       return res.status(404).json({ message: "User not registered in local database" });
@@ -54,8 +55,7 @@ router.get("/profile", authenticateClient, async (req, res) => {
       token: localToken
     });
   } catch (error) {
-    console.error("Profile Error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 });
 
