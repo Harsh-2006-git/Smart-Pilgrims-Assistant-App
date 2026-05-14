@@ -12,7 +12,7 @@ dotenv.config();
 const razorpay = null;
 
 
-export const createBooking = async (req, res) => {
+export const createBooking = async (req, res, next) => {
     try {
         const { parking_slot_id, startTime, endTime, vehicleNumber } = req.body;
         const user_id = req.user.client_id;
@@ -66,11 +66,11 @@ export const createBooking = async (req, res) => {
             order: { id: simulatedOrderId, amount: totalAmount * 100 },
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const verifyPayment = async (req, res) => {
+export const verifyPayment = async (req, res, next) => {
     try {
         const { razorpay_order_id } = req.body;
 
@@ -95,11 +95,11 @@ export const verifyPayment = async (req, res) => {
 
         res.json({ message: "Payment simulated successfully", booking });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getMyBookings = async (req, res) => {
+export const getMyBookings = async (req, res, next) => {
     try {
         const user_id = req.user.client_id;
         const bookings = await Booking.findAll({
@@ -109,11 +109,11 @@ export const getMyBookings = async (req, res) => {
         });
         res.json(bookings);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getSlotBookings = async (req, res) => {
+export const getSlotBookings = async (req, res, next) => {
     try {
         const { slot_id } = req.params;
         const slot = await ParkingSlot.findByPk(slot_id);
@@ -130,6 +130,6 @@ export const getSlotBookings = async (req, res) => {
         });
         res.json(bookings);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
