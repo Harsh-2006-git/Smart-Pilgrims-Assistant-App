@@ -4,7 +4,7 @@ import Client from '../models/client.js';
 import { Op } from 'sequelize';
 
 // 1. Get location history of a user
-export const getLocationHistory = async (req, res) => {
+export const getLocationHistory = async (req, res, next) => {
     try {
         const { userId } = req.params;
         const currentUserId = req.user.client_id;
@@ -27,12 +27,12 @@ export const getLocationHistory = async (req, res) => {
 
         res.json(history);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // 2. Add a guardian
-export const addGuardian = async (req, res) => {
+export const addGuardian = async (req, res, next) => {
     try {
         const { guardianId } = req.body;
         const userId = req.user.client_id; // From JWT
@@ -49,12 +49,12 @@ export const addGuardian = async (req, res) => {
 
         res.status(201).json(mapping);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // 3. Approve a tracking request
-export const approveTracking = async (req, res) => {
+export const approveTracking = async (req, res, next) => {
     try {
         const { userId } = req.body;
         const guardianId = req.user.client_id;
@@ -72,12 +72,12 @@ export const approveTracking = async (req, res) => {
 
         res.json({ message: 'Approved successfully', mapping });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // 4. List my guardians
-export const getMyGuardians = async (req, res) => {
+export const getMyGuardians = async (req, res, next) => {
     try {
         const userId = req.user.client_id;
         const guardians = await GuardianMapping.findAll({
@@ -86,12 +86,12 @@ export const getMyGuardians = async (req, res) => {
         });
         res.json(guardians);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // 5. List people I am tracking (Approved)
-export const getTrackingProtégés = async (req, res) => {
+export const getTrackingProtégés = async (req, res, next) => {
     try {
         const guardianId = req.user.client_id;
         const protégés = await GuardianMapping.findAll({
@@ -100,12 +100,12 @@ export const getTrackingProtégés = async (req, res) => {
         });
         res.json(protégés);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // 6. List pending association requests (where I am the guardian)
-export const getPendingGuardianRequests = async (req, res) => {
+export const getPendingGuardianRequests = async (req, res, next) => {
     try {
         const guardianId = req.user.client_id;
         const pending = await GuardianMapping.findAll({
@@ -114,6 +114,6 @@ export const getPendingGuardianRequests = async (req, res) => {
         });
         res.json(pending);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
