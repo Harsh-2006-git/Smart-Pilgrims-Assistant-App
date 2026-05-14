@@ -12,6 +12,7 @@ import TicketRoute from "./routes/ticketRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import parkingRoutes from "./routes/parkingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import stayRoutes from "./routes/stayRoutes.js";
 import familyMemberRoutes from "./routes/familyMemberRoutes.js";
 
 import nearbyRoutes from "./routes/nearbyRoutes.js";
@@ -101,6 +102,7 @@ app.use("/api/v1/ticket", TicketRoute);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/parking", parkingRoutes);
 app.use("/api/v1/booking", bookingRoutes);
+app.use("/api/v1/stays", stayRoutes);
 app.use("/api/v1/family", familyMemberRoutes);
 
 app.use("/api/v1/nearby", nearbyRoutes);
@@ -123,8 +125,14 @@ const initializeApp = async () => {
     console.log("✅ Database Connected");
 
     const backendRoot = path.dirname(fileURLToPath(import.meta.url));
-    initCrowdAI(backendRoot);
-    console.log("🧠 AI Neural Core active");
+    
+    // Initialize AI Core with error handling
+    try {
+      initCrowdAI(backendRoot);
+      console.log("🧠 AI Neural Core active");
+    } catch (aiError) {
+      console.warn("⚠️ AI Core initialization skipped:", aiError.message);
+    }
 
     isInitialized = true;
   } catch (error) {
@@ -137,6 +145,7 @@ const initializeApp = async () => {
 const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = initSocket(httpServer);
+app.set("io", io);
 
 // If we are running in Vercel, we can export the app and initialize DB
 // We attach a middleware that ensures the DB is connected before handling requests

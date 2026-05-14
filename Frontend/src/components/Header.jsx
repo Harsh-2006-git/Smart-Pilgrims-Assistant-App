@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Compass, User, LogOut, MapPin, ChevronDown, Globe, CreditCard, ShieldCheck } from "lucide-react";
+import { Menu, X, Compass, User, LogOut, ChevronDown, Globe, CreditCard, ShieldCheck, LogIn } from "lucide-react";
 import GuidePage from "../pages/guide";
 import logo from "../assets/logo.png";
 import { resolveMediaUrl } from "../config/api";
@@ -33,6 +33,7 @@ const Header = () => {
     const guideRef = useRef(null);
     const langRef = useRef(null);
     const [user, setUser] = useState(null);
+    const isAuthenticated = Boolean(localStorage.getItem("token"));
 
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
@@ -143,7 +144,8 @@ const Header = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("google-translate-lang"); // Reset on logout if desired
-        window.location.href = "/auth";
+        setUser(null);
+        navigate("/");
     };
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -192,6 +194,7 @@ const Header = () => {
         { name: "Services", target: "services" },
         { name: "Family Mode", target: "/family-mode" },
         { name: "Parking", target: "/parking" },
+        { name: "Stays", target: "/stays" },
         { name: "Admin", target: "/admin" },
     ];
 
@@ -254,56 +257,66 @@ const Header = () => {
                     {/* Right Controls */}
                     <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
                         {/* Profile Control */}
-                        <div className="relative group/profile">
-                            <button
-                                onClick={() => { if (window.innerWidth < 1280) setIsProfileOpen(!isProfileOpen); }}
-                                className="flex items-center gap-2 sm:gap-3 pl-1 pr-1 lg:pr-5 py-1 rounded-full border border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all active:scale-95 xl:group-hover/profile:border-orange-500"
-                            >
-                                <div className="h-8 w-8 sm:h-11 rounded-full overflow-hidden border-2 border-orange-50 bg-orange-100 flex-shrink-0">
-                                    {user?.profile_image || user?.photo ? (
-                                        <img src={user.profile_image ? resolveMediaUrl(user.profile_image) : user.photo} alt="Profile" className="h-full w-full object-cover" />
-                                    ) : (
-                                        <div className="h-full w-full flex items-center justify-center bg-orange-100 text-orange-600 text-sm sm:text-lg font-bold">
-                                            {user?.name?.[0]?.toUpperCase() || "Y"}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="hidden lg:flex flex-col text-left">
-                                    <span className="text-[9px] font-black text-slate-400 tracking-widest uppercase leading-none mb-1">Pass Holder</span>
-                                    <span className="text-sm font-bold text-slate-800 whitespace-nowrap">{user?.name || "Guest Devotee"}</span>
-                                </div>
-                                <ChevronDown size={14} className="hidden lg:block text-slate-400 xl:group-hover/profile:rotate-180 transition-transform" />
-                            </button>
+                        {isAuthenticated ? (
+                            <div className="relative group/profile">
+                                <button
+                                    onClick={() => { if (window.innerWidth < 1280) setIsProfileOpen(!isProfileOpen); }}
+                                    className="flex items-center gap-2 sm:gap-3 pl-1 pr-1 lg:pr-5 py-1 rounded-full border border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all active:scale-95 xl:group-hover/profile:border-orange-500"
+                                >
+                                    <div className="h-8 w-8 sm:h-11 rounded-full overflow-hidden border-2 border-orange-50 bg-orange-100 flex-shrink-0">
+                                        {user?.profile_image || user?.photo ? (
+                                            <img src={user.profile_image ? resolveMediaUrl(user.profile_image) : user.photo} alt="Profile" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <div className="h-full w-full flex items-center justify-center bg-orange-100 text-orange-600 text-sm sm:text-lg font-bold">
+                                                {user?.name?.[0]?.toUpperCase() || "Y"}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="hidden lg:flex flex-col text-left">
+                                        <span className="text-[9px] font-black text-slate-400 tracking-widest uppercase leading-none mb-1">Pass Holder</span>
+                                        <span className="text-sm font-bold text-slate-800 whitespace-nowrap">{user?.name || "Devotee"}</span>
+                                    </div>
+                                    <ChevronDown size={14} className="hidden lg:block text-slate-400 xl:group-hover/profile:rotate-180 transition-transform" />
+                                </button>
 
-                            {/* Profile Dropdown */}
-                            <div className={`absolute right-0 top-full pt-2 w-56 transition-all duration-300 z-50 transform ${isProfileOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'} xl:group-hover/profile:opacity-100 xl:group-hover/profile:visible xl:group-hover/profile:translate-y-0`}>
-                                <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-                                    <div className="p-3 bg-slate-50 border-b border-gray-100">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-2 pr-1 flex justify-between">
-                                            <span>Account</span>
-                                            <button onClick={() => setIsProfileOpen(false)} className="xl:hidden"><X size={12} /></button>
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-8 w-8 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-base">{user?.name?.[0]?.toUpperCase() || "?"}</div>
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-bold text-slate-900 truncate">{user?.name || "Devotee"}</p>
-                                                <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email || "ujjain.yatra@auth"}</p>
+                                {/* Profile Dropdown */}
+                                <div className={`absolute right-0 top-full pt-2 w-56 transition-all duration-300 z-50 transform ${isProfileOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'} xl:group-hover/profile:opacity-100 xl:group-hover/profile:visible xl:group-hover/profile:translate-y-0`}>
+                                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                                        <div className="p-3 bg-slate-50 border-b border-gray-100">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase mb-2 pr-1 flex justify-between">
+                                                <span>Account</span>
+                                                <button onClick={() => setIsProfileOpen(false)} className="xl:hidden"><X size={12} /></button>
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-8 w-8 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-base">{user?.name?.[0]?.toUpperCase() || "?"}</div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-slate-900 truncate">{user?.name || "Devotee"}</p>
+                                                    <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email || "ujjain.yatra@auth"}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="p-1.5 bg-white space-y-0.5">
-                                        <button onClick={() => handleNavigation("/admin")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-orange-600 font-bold text-xs transition-all shadow-md shadow-slate-900/10 mb-1">
-                                            <ShieldCheck size={16} className="text-orange-400" /> Master Console
-                                        </button>
-                                        <button onClick={() => handleNavigation("/profile")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><User size={16} className="text-slate-400" /> My Profile</button>
-                                        <button onClick={() => handleNavigation("/nearby")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><Compass size={16} className="text-slate-400" /> Navigator</button>
-                                        <div className="pt-1.5 mt-1.5 border-t border-slate-50">
-                                            <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-rose-50 text-rose-600 font-bold text-xs transition-all"><LogOut size={16} /> Log Out</button>
+                                        <div className="p-1.5 bg-white space-y-0.5">
+                                            <button onClick={() => handleNavigation("/admin")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-orange-600 font-bold text-xs transition-all shadow-md shadow-slate-900/10 mb-1">
+                                                <ShieldCheck size={16} className="text-orange-400" /> Master Console
+                                            </button>
+                                            <button onClick={() => handleNavigation("/profile")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><User size={16} className="text-slate-400" /> My Profile</button>
+                                            <button onClick={() => handleNavigation("/nearby")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><Compass size={16} className="text-slate-400" /> Navigator</button>
+                                            <div className="pt-1.5 mt-1.5 border-t border-slate-50">
+                                                <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-rose-50 text-rose-600 font-bold text-xs transition-all"><LogOut size={16} /> Log Out</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <button
+                                onClick={() => handleNavigation("/auth")}
+                                className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-full bg-orange-600 text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-lg shadow-orange-500/20 hover:bg-slate-900 transition-all active:scale-95"
+                            >
+                                <LogIn size={16} />
+                                <span className="hidden sm:inline">Login</span>
+                            </button>
+                        )}
 
                         {/* Mobile Language Trigger */}
                         <div className="relative xl:hidden">
@@ -393,15 +406,21 @@ const Header = () => {
                             </nav>
                             <div className="p-6 border-t border-gray-100 bg-slate-50">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Account Settings</p>
-                                <div className="space-y-3">
-                                    <button onClick={() => handleNavigation("/profile")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:border-orange-500 transition-all text-left">
-                                        <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-orange-50 bg-orange-100 flex-shrink-0">
-                                            {user?.profile_image || user?.photo ? <img src={user.profile_image ? resolveMediaUrl(user.profile_image) : user.photo} alt="Profile" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center bg-orange-100 text-orange-600 text-sm font-bold">{user?.name?.[0]?.toUpperCase() || "Y"}</div>}
-                                        </div>
-                                        <div className="min-w-0"><p className="text-sm font-bold text-slate-900 truncate">{user?.name || "Guest"}</p><p className="text-[11px] text-slate-500">View Profile Dashboard</p></div>
+                                {isAuthenticated ? (
+                                    <div className="space-y-3">
+                                        <button onClick={() => handleNavigation("/profile")} className="w-full flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:border-orange-500 transition-all text-left">
+                                            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-orange-50 bg-orange-100 flex-shrink-0">
+                                                {user?.profile_image || user?.photo ? <img src={user.profile_image ? resolveMediaUrl(user.profile_image) : user.photo} alt="Profile" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center bg-orange-100 text-orange-600 text-sm font-bold">{user?.name?.[0]?.toUpperCase() || "Y"}</div>}
+                                            </div>
+                                            <div className="min-w-0"><p className="text-sm font-bold text-slate-900 truncate">{user?.name || "Devotee"}</p><p className="text-[11px] text-slate-500">View Profile Dashboard</p></div>
+                                        </button>
+                                        <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm hover:bg-rose-100 transition-all"><LogOut size={16} /> Logout Account</button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => handleNavigation("/auth")} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-slate-900 transition-all">
+                                        <LogIn size={16} /> Login / Register
                                     </button>
-                                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm hover:bg-rose-100 transition-all"><LogOut size={16} /> Logout Account</button>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>

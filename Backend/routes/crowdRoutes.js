@@ -25,21 +25,41 @@ export const initCrowdAI = (backendPath) => {
     const pythonPath = process.platform === "win32" ? "py" : "python3";
     const scriptPath = path.join(backendPath, "AI_Core", "crowd_engine.py");
 
-    // Fix for DeprecationWarning and Security: verify python exists or use shell: false
-    // Using shell: false is safer and removes the warning
-    aiProcess = spawn(pythonPath, [scriptPath], {
-        stdio: "inherit",
-        shell: false,
-        cwd: path.join(backendPath, "AI_Core")
-    });
+    try {
+        // Fix for DeprecationWarning and Security: verify python exists or use shell: false
+        // Using shell: false is safer and removes the warning
+        aiProcess = spawn(pythonPath, [scriptPath], {
+            stdio: "inherit",
+            shell: false,
+            cwd: path.join(backendPath, "AI_Core"),
+            detached: false
+        });
 
-    aiProcess.on("error", (err) => {
-        console.error("❌ AI Core failed to ignite:", err);
-    });
+        aiProcess.on("error", (err) => {
+            console.warn("⚠️ AI Core failed to start (Flask may not be installed):", err.message);
+            aiProcess = null;
+        });
 
-    process.on("exit", () => {
-        if (aiProcess) aiProcess.kill();
-    });
+        aiProcess.on("exit", (code) => {
+            if (code !== 0) {
+                console.warn("⚠️ AI Core process exited with code:", code);
+            }
+            aiProcess = null;
+        });
+
+        process.on("exit", () => {
+            if (aiProcess) {
+                try {
+                    aiProcess.kill();
+                } catch (e) {
+                    // Ignore kill errors
+                }
+            }
+        });
+    } catch (err) {
+        console.warn("⚠️ Failed to spawn AI Core:", err.message);
+        aiProcess = null;
+    }
 };
 
 // Proxy Middleware for AI Endpoints

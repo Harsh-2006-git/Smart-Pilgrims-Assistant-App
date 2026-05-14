@@ -309,3 +309,56 @@ export const sendResetPasswordEmail = async (email, resetToken) => {
   };
   await transporter.sendMail(mailOptions);
 };
+
+const stayMailConfigured = () =>
+  Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+async function staySend(to, subject, html) {
+  if (!stayMailConfigured() || !to) return;
+  await transporter.sendMail({
+    from: `"Divya Yatra Stays" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html,
+  });
+}
+
+/** New Pending booking: notify owner (request) and traveler (submitted). */
+export const sendStayNewBookingEmails = async ({ listing, room, booking, owner, pilgrim, guestEmail, guestName }) => {
+  const travelerEmail = pilgrim?.email || guestEmail;
+  const travelerLabel = pilgrim?.name || guestName || "Traveler";
+  const ownerHtml = `<p>You have a new <strong>stay booking request</strong> for <strong>${listing.propertyName}</strong>.</p>
+    <ul><li>Guest: ${travelerLabel}</li><li>Phone: ${booking.contactPhone}</li><li>Room: ${room.roomType}</li>
+    <li>Check-in: ${booking.checkInDate}</li><li>Check-out: ${booking.checkOutDate}</li><li>Rooms: ${booking.roomsBooked}</li><li>Booking #${booking.stay_booking_id}</li></ul>
+    <p>Please confirm or contact the guest in your host dashboard.</p>`;
+  const travelerHtml = `<p>Your booking request for <strong>${listing.propertyName}</strong> has been <strong>submitted</strong> (reference #${booking.stay_booking_id}).</p>
+    <p>Status: <strong>Pending</strong> until the host confirms.</p>
+    <ul><li>Room: ${room.roomType}</li><li>Check-in: ${booking.checkInDate}</li><li>Check-out: ${booking.checkOutDate}</li></ul>
+    <p>Host phone: <strong>${listing.ownerContact}</strong></p>`;
+  if (owner?.email) await staySend(owner.email, `New booking request — ${listing.propertyName}`, ownerHtml).catch(() => {});
+  if (travelerEmail) await staySend(travelerEmail, `Booking submitted — ${listing.propertyName}`, travelerHtml).catch(() => {});
+};
+
+export const sendStayConfirmedEmail = async ({ listing, booking, travelerEmail }) => {
+  const html = `<p>Your stay at <strong>${listing.propertyName}</strong> is <strong>confirmed</strong>.</p>
+    <p>Booking #${booking.stay_booking_id} · ${booking.checkInDate} → ${booking.checkOutDate}</p>
+    <p>Host: ${listing.ownerContact}</p>`;
+  if (travelerEmail) await staySend(travelerEmail, `Stay confirmed — ${listing.propertyName}`, html).catch(() => {});
+};
+
+export const sendStayCancellationEmails = async ({ listing, booking, owner, pilgrim, guestEmail }) => {
+  const subj = `Booking cancelled — ${listing?.propertyName || "Stay"}`;
+  const body = `<p>Booking #${booking.stay_booking_id} has been cancelled.</p><p>${booking.checkInDate} → ${booking.checkOutDate}</p>`;
+  const tEmail = pilgrim?.email || guestEmail;
+  if (tEmail) await staySend(tEmail, subj, body).catch(() => {});
+  if (owner?.email) await staySend(owner.email, subj, body).catch(() => {});
+};
+
+/** Call from cron (e.g. daily) for check-in tomorrow */
+export const sendStayCheckInReminderEmails = async ({ listing, booking, owner, pilgrim, guestEmail }) => {
+  const subj = `Reminder: check-in tomorrow — ${listing?.propertyName || "Your stay"}`;
+  const body = `<p>Reminder: check-in on <strong>${booking.checkInDate}</strong> at <strong>${listing?.propertyName || ""}</strong>.</p><p>Host: ${listing?.ownerContact || ""}</p>`;
+  const tEmail = pilgrim?.email || guestEmail;
+  if (tEmail) await staySend(tEmail, subj, body).catch(() => {});
+  if (owner?.email) await staySend(owner.email, `Guest check-in tomorrow — ${listing?.propertyName}`, body).catch(() => {});
+};

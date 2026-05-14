@@ -14,16 +14,20 @@ import {
   Calendar,
   Compass,
   CreditCard,
-  MapPin
+  MapPin,
+  LockKeyhole,
+  LogIn
 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { API_V1 } from "../config/api";
 
 const Auth = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || "/";
   const [step, setStep] = useState("initial"); // initial, registering
   const [formData, setFormData] = useState({
     name: "",
@@ -36,6 +40,11 @@ const Auth = ({ setIsAuthenticated }) => {
   });
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState("google");
+  const [loginData, setLoginData] = useState({
+    phone: "",
+    password: "",
+  });
   const slides = [
     "https://cdn.pixabay.com/photo/2016/08/21/19/49/temple-1610625_1280.jpg",
     "https://s-media-cache-ak0.pinimg.com/originals/c3/22/a0/c322a010cd73eb17596d705120bc0132.jpg",
@@ -59,7 +68,7 @@ const Auth = ({ setIsAuthenticated }) => {
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("token", data.token);
         setIsAuthenticated(true);
-        navigate("/");
+        navigate(redirectTo, { replace: true });
       } else if (response.status === 404 || response.status === 401) {
         setFormData({
           name: decodedUser.name || "",
@@ -74,6 +83,44 @@ const Auth = ({ setIsAuthenticated }) => {
       } else {
         throw new Error("Divine connection lost");
       }
+    } catch (error) {
+      console.error(error);
+      setMessage("Service temporarily unavailable. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTextLogin = async (event) => {
+    event.preventDefault();
+    setMessage("");
+
+    if (!loginData.phone.trim() || !loginData.password) {
+      setMessage("Enter phone number and password.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_V1}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: loginData.phone.trim(),
+          password: loginData.password,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Login failed. Check your credentials.");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      setIsAuthenticated(true);
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error(error);
       setMessage("Service temporarily unavailable. Please try again.");
@@ -170,20 +217,81 @@ const Auth = ({ setIsAuthenticated }) => {
                                </div>
                             </div>
                             <div className="hidden md:block text-center space-y-1">
-                               <span className="text-slate-800 font-bold block text-lg">One-Tap Authentication</span>
-                               <span className="text-slate-400 text-xs font-medium">Continue securely with your Google account</span>
+                               <span className="text-slate-800 font-bold block text-lg">
+                                 {loginMode === "google" ? "One-Tap Authentication" : "Phone Login"}
+                               </span>
+                               <span className="text-slate-400 text-xs font-medium">
+                                 {loginMode === "google" ? "Continue securely with your Google account" : "Use your registered phone number and password"}
+                               </span>
                             </div>
-                            <div className="w-full transform transition-all hover:scale-[1.02] flex justify-center py-2">
-                              <GoogleLogin
-                                onSuccess={handleGoogleSuccess}
-                                onError={() => setMessage("Connection Failed")}
-                                useOneTap
-                                theme="outline"
-                                shape="pill"
-                                size="large"
-                                width="250px"
-                              />
+                            <div className="w-full grid grid-cols-2 gap-2 rounded-2xl bg-white border border-slate-100 p-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoginMode("google");
+                                  setMessage("");
+                                }}
+                                className={`h-11 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${loginMode === "google" ? "bg-slate-900 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
+                              >
+                                Google
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoginMode("phone");
+                                  setMessage("");
+                                }}
+                                className={`h-11 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${loginMode === "phone" ? "bg-slate-900 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
+                              >
+                                Phone
+                              </button>
                             </div>
+                            {loginMode === "google" ? (
+                              <div className="w-full transform transition-all hover:scale-[1.02] flex justify-center py-2">
+                                <GoogleLogin
+                                  onSuccess={handleGoogleSuccess}
+                                  onError={() => setMessage("Connection Failed")}
+                                  useOneTap
+                                  theme="outline"
+                                  shape="pill"
+                                  size="large"
+                                  width="250px"
+                                />
+                              </div>
+                            ) : (
+                              <form onSubmit={handleTextLogin} className="w-full space-y-3 text-left">
+                                <div className="relative group">
+                                  <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                                  <input
+                                    type="tel"
+                                    placeholder="Phone number"
+                                    value={loginData.phone}
+                                    onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
+                                    className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400"
+                                  />
+                                </div>
+                                <div className="relative group">
+                                  <LockKeyhole className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                                  <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={loginData.password}
+                                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                    className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400"
+                                  />
+                                </div>
+                                <button
+                                  type="submit"
+                                  disabled={isLoading}
+                                  className="w-full h-14 bg-orange-600 hover:bg-slate-900 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl disabled:opacity-70"
+                                >
+                                  {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>Login <LogIn size={18} /></>}
+                                </button>
+                                <p className="text-center text-[10px] font-bold text-slate-400">
+                                  Demo: 9999900001 / demo1234
+                                </p>
+                              </form>
+                            )}
                          </div>
                       </div>
                    ) : (
@@ -311,7 +419,7 @@ const Auth = ({ setIsAuthenticated }) => {
                                 localStorage.setItem("user", JSON.stringify(data.user));
                                 localStorage.setItem("token", data.token);
                                 setIsAuthenticated(true);
-                                navigate("/");
+                                navigate(redirectTo, { replace: true });
                               } else { setMessage(data.message); }
                             } catch (err) { setMessage("Registration failed. Try again."); }
                             finally { setIsLoading(false); }

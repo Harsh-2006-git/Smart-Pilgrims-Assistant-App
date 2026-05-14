@@ -38,4 +38,13 @@ const lostFoundStorage = new CloudinaryStorage({
   },
 });
 
-export { cloudinary, profileStorage, parkingStorage, lostFoundStorage };
+// Pilgrim stays — property + room photos (Cloudinary)
+const stayStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'ujjain_yatra/stays',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+  },
+});
+
+export { cloudinary, profileStorage, parkingStorage, lostFoundStorage, stayStorage };

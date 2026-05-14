@@ -255,6 +255,14 @@ const HomePage2 = () => {
       link: "/map"
     },
     {
+      title: "Pilgrim Stays & Lodging",
+      description:
+        "List or book dharamshalas, lodges, and homestays with maps, filters, and host contact — safe stays for the yatra.",
+      icon: <Hotel className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />,
+      features: ["GPS on map", "Book rooms", "List with Cloudinary photos"],
+      link: "/stays"
+    },
+    {
       title: "AI Yatra Planner",
       description: "Plan your spiritual journey with our AI-powered travel assistant.",
       icon: <Bot className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />,
