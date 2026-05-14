@@ -4,7 +4,7 @@ import Client from "../models/client.js";
 import { v4 as uuidv4 } from "uuid";
 
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { name, phone, email, password, userType, adminSecret } = req.body;
 
@@ -70,8 +70,6 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Register Error:", error);
-
     // Handle duplicate entry gracefully
     if (error.code === "ER_DUP_ENTRY") {
       return res.status(400).json({
@@ -80,12 +78,12 @@ export const register = async (req, res) => {
       });
     }
 
-    res.status(500).json({ message: "Server error", error: error.message, stack: error.stack });
+    next(error);
   }
 };
 
 // LOGIN
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { phone, password } = req.body;
 
@@ -126,12 +124,11 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const { name, phone, email, userType } = req.body;
     const client = await Client.findByPk(req.user.client_id);
@@ -170,12 +167,11 @@ export const updateProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Update Profile Error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-export const searchUser = async (req, res) => {
+export const searchUser = async (req, res, next) => {
   try {
     const { phone } = req.query;
     if (!phone) {
@@ -193,6 +189,6 @@ export const searchUser = async (req, res) => {
 
     res.json(client);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
