@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App";
 import "./index.css";
+import "./i18n"; // Initialize i18next before app renders
 import { SocketProvider } from "./context/SocketContext";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID";
