@@ -2,7 +2,7 @@
 import ParkingSlot from "../models/parkingSlot.js";
 import { Op } from "sequelize";
 
-export const createParkingSlot = async (req, res) => {
+export const createParkingSlot = async (req, res, next) => {
     try {
         const {
             title,
@@ -42,11 +42,11 @@ export const createParkingSlot = async (req, res) => {
 
         res.status(201).json({ message: "Parking slot listed successfully and is now live!", data: newSlot });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getAllParkingSlots = async (req, res) => {
+export const getAllParkingSlots = async (req, res, next) => {
     try {
         const { type, minPrice, maxPrice, lat, lng, radius } = req.query;
         let where = { isActive: true, isApproved: true };
@@ -63,31 +63,31 @@ export const getAllParkingSlots = async (req, res) => {
         const slots = await ParkingSlot.findAll({ where });
         res.json(slots);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getMyParkingSlots = async (req, res) => {
+export const getMyParkingSlots = async (req, res, next) => {
     try {
         const owner_id = req.user.client_id;
         const slots = await ParkingSlot.findAll({ where: { owner_id } });
         res.json(slots);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getParkingSlotById = async (req, res) => {
+export const getParkingSlotById = async (req, res, next) => {
     try {
         const slot = await ParkingSlot.findByPk(req.params.id);
         if (!slot) return res.status(404).json({ message: "Parking slot not found" });
         res.json(slot);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const updateParkingSlot = async (req, res) => {
+export const updateParkingSlot = async (req, res, next) => {
     try {
         const slot = await ParkingSlot.findByPk(req.params.id);
         if (!slot) return res.status(404).json({ message: "Parking slot not found" });
@@ -104,11 +104,11 @@ export const updateParkingSlot = async (req, res) => {
         await slot.update(updateData);
         res.json({ message: "Parking slot updated successfully", data: slot });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const deleteParkingSlot = async (req, res) => {
+export const deleteParkingSlot = async (req, res, next) => {
     try {
         const slot = await ParkingSlot.findByPk(req.params.id);
         if (!slot) return res.status(404).json({ message: "Parking slot not found" });
@@ -120,11 +120,11 @@ export const deleteParkingSlot = async (req, res) => {
         await slot.destroy();
         res.json({ message: "Parking slot deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const toggleActivity = async (req, res) => {
+export const toggleActivity = async (req, res, next) => {
     try {
         const slot = await ParkingSlot.findByPk(req.params.id);
         if (!slot) return res.status(404).json({ message: "Parking slot not found" });
@@ -137,6 +137,6 @@ export const toggleActivity = async (req, res) => {
         await slot.save();
         res.json({ message: `Parking slot is now ${slot.isActive ? "active" : "inactive"}`, data: slot });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
