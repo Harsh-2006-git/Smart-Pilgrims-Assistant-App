@@ -8,7 +8,7 @@ import QRCode from "qrcode";
 
 import QRCodeModel from "../models/qrCode.js";
 
-export const generateQRCodeForUser = async (req, res) => {
+export const generateQRCodeForUser = async (req, res, next) => {
   try {
     const { client_id, unique_code } = req.user;
 
@@ -34,13 +34,12 @@ export const generateQRCodeForUser = async (req, res) => {
 
     res.json({ qrImage });
   } catch (error) {
-    console.error("QR generation error:", error);
-    res.status(500).json({ message: "Failed to generate QR" });
+    next(error);
   }
 };
 
 // Get user info from scanned QR
-export const getInfoFromQRScan = async (req, res) => {
+export const getInfoFromQRScan = async (req, res, next) => {
   try {
     const { qr_data } = req.body; // scanned QR data from frontend
 
@@ -60,13 +59,12 @@ export const getInfoFromQRScan = async (req, res) => {
     // Return the decoded user info
     res.json({ user: userInfo });
   } catch (error) {
-    console.error("QR scan error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
 // controllers/zoneController.js
-export const scanZone = async (req, res) => {
+export const scanZone = async (req, res, next) => {
   try {
     const { unique_code, zone_id, latitude, longitude } = req.body;
     let client = await Client.findOne({ where: { unique_code } });
@@ -161,11 +159,10 @@ export const scanZone = async (req, res) => {
 
     return res.status(400).json({ message: "Participant not in any zone" });
   } catch (error) {
-    console.error("Scan Error:", error);
-    res.status(500).json({ message: "Server error during scan" });
+    next(error);
   }
 };
-export const getZoneDensity = async (req, res) => {
+export const getZoneDensity = async (req, res, next) => {
   try {
     const zones = await Zone.findAll({
       attributes: ["zone_id", "name", "client_count"],
@@ -186,12 +183,11 @@ export const getZoneDensity = async (req, res) => {
       zones: density,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-export const getUserZoneHistory = async (req, res) => {
+export const getUserZoneHistory = async (req, res, next) => {
   try {
     let client_id;
 
@@ -302,13 +298,12 @@ export const getUserZoneHistory = async (req, res) => {
     });
     res.json({ client_id, history, type: targetMemberId ? 'family_member' : (req.query.type || 'combined') });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
 // Periodic (5 min) Live Location Logging for Primary User
-export const recordLiveLocation = async (req, res) => {
+export const recordLiveLocation = async (req, res, next) => {
   try {
     const { latitude, longitude } = req.body;
     const { client_id } = req.user;
@@ -334,18 +329,16 @@ export const recordLiveLocation = async (req, res) => {
 
     res.json({ message: "Location logged", tracker: update });
   } catch (error) {
-    console.error("Loc logging error:", error);
-    res.status(500).json({ message: "Sync failed" });
+    next(error);
   }
 };
 
-export const clearUserZoneHistory = async (req, res) => {
+export const clearUserZoneHistory = async (req, res, next) => {
   try {
     const { client_id } = req.user;
     await ZoneTracker.destroy({ where: { client_id } });
     res.json({ message: "Journey history cleared successfully" });
   } catch (error) {
-    console.error("Clear History Error:", error);
-    res.status(500).json({ message: "Failed to clear history" });
+    next(error);
   }
 };
