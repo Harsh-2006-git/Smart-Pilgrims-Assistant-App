@@ -9,7 +9,7 @@ import { Op } from "sequelize";
 
 import { sendSOSEmail } from "../utils/emailService.js";
 
-export const getAdminStats = async (req, res) => {
+export const getAdminStats = async (req, res, next) => {
     try {
         const totalUsers = await Client.count();
         const totalTickets = await Ticket.count();
@@ -30,12 +30,11 @@ export const getAdminStats = async (req, res) => {
             revenue: `₹${(revenue / 100000).toFixed(1)}L`
         });
     } catch (error) {
-        console.error("Admin Stats Error:", error);
-        res.status(500).json({ message: "Error fetching admin stats" });
+        next(error);
     }
 };
 
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res, next) => {
     try {
         const users = await Client.findAll({
             attributes: ['client_id', 'name', 'email', 'phone', 'userType', 'profile_image', 'created_at'],
@@ -43,12 +42,11 @@ export const getAllUsers = async (req, res) => {
         });
         res.json(users);
     } catch (error) {
-        console.error("Admin Users Error:", error);
-        res.status(500).json({ message: "Error fetching users" });
+        next(error);
     }
 };
 
-export const getAllTickets = async (req, res) => {
+export const getAllTickets = async (req, res, next) => {
     try {
         const tickets = await Ticket.findAll({
             include: [{
@@ -59,24 +57,22 @@ export const getAllTickets = async (req, res) => {
         });
         res.json(tickets);
     } catch (error) {
-        console.error("Admin Tickets Error:", error);
-        res.status(500).json({ message: "Error fetching tickets" });
+        next(error);
     }
 };
 
-export const getAllLostFound = async (req, res) => {
+export const getAllLostFound = async (req, res, next) => {
     try {
         const items = await LostFound.findAll({
             order: [['uploadedAt', 'DESC']]
         });
         res.json(items);
     } catch (error) {
-        console.error("Admin LostFound Error:", error);
-        res.status(500).json({ message: "Error fetching lost/found items", error: error.message });
+        next(error);
     }
 };
 
-export const getZoneDensity = async (req, res) => {
+export const getZoneDensity = async (req, res, next) => {
     try {
         const latestData = await ZoneTracker.findAll({
             attributes: [
@@ -91,11 +87,10 @@ export const getZoneDensity = async (req, res) => {
         });
         res.json(latestData);
     } catch (error) {
-        console.error("Admin ZoneDensity Error:", error);
-        res.status(500).json({ message: "Error fetching zone density", error: error.message });
+        next(error);
     }
 };
-export const getActiveAlerts = async (req, res) => {
+export const getActiveAlerts = async (req, res, next) => {
     try {
         const alerts = await Alert.findAll({
             where: { is_active: true },
@@ -104,12 +99,11 @@ export const getActiveAlerts = async (req, res) => {
         });
         res.json(alerts);
     } catch (error) {
-        console.error("Admin ActiveAlerts Error:", error);
-        res.status(500).json({ message: "Error fetching active alerts", error: error.message });
+        next(error);
     }
 };
 
-export const createAlert = async (req, res) => {
+export const createAlert = async (req, res, next) => {
     try {
         const { title, message, severity } = req.body;
         const newAlert = await Alert.create({
@@ -121,12 +115,11 @@ export const createAlert = async (req, res) => {
         });
         res.status(201).json(newAlert);
     } catch (error) {
-        console.error("Admin CreateAlert Error:", error);
-        res.status(500).json({ message: "Error creating alert", error: error.message });
+        next(error);
     }
 };
 
-export const deactivateAlert = async (req, res) => {
+export const deactivateAlert = async (req, res, next) => {
     try {
         const { id } = req.params;
         const alert = await Alert.findByPk(id);
@@ -137,11 +130,10 @@ export const deactivateAlert = async (req, res) => {
         await alert.save();
         res.json({ message: "Alert deactivated successfully" });
     } catch (error) {
-        console.error("Admin DeactivateAlert Error:", error);
-        res.status(500).json({ message: "Error deactivating alert", error: error.message });
+        next(error);
     }
 };
-export const handleSOS = async (req, res) => {
+export const handleSOS = async (req, res, next) => {
     try {
         const { lat, lng } = req.body;
         // Fetch full user object to ensure we have the name/profile for email
@@ -169,12 +161,11 @@ export const handleSOS = async (req, res) => {
 
         res.json({ success: true, message: "SOS Alert Dispatched to Authorities" });
     } catch (error) {
-        console.error("SOS System Error:", error.message);
-        res.status(500).json({ message: "Failed to broadcast SOS" });
+        next(error);
     }
 };
 
-export const getSOSAlerts = async (req, res) => {
+export const getSOSAlerts = async (req, res, next) => {
     try {
         const alerts = await SOSAlert.findAll({
             include: [{
@@ -186,12 +177,11 @@ export const getSOSAlerts = async (req, res) => {
         });
         res.json(alerts);
     } catch (error) {
-        console.error("Admin Fetch SOS Error:", error);
-        res.status(500).json({ message: "Error fetching SOS alerts" });
+        next(error);
     }
 };
 
-export const deleteSOS = async (req, res) => {
+export const deleteSOS = async (req, res, next) => {
     try {
         const { id } = req.params;
         const alert = await SOSAlert.findByPk(id);
@@ -201,7 +191,6 @@ export const deleteSOS = async (req, res) => {
         await alert.destroy();
         res.json({ message: "SOS Alert resolved and removed" });
     } catch (error) {
-        console.error("Admin Delete SOS Error:", error);
-        res.status(500).json({ message: "Error deleting SOS alert" });
+        next(error);
     }
 };
