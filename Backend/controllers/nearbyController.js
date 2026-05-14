@@ -4,7 +4,7 @@ import axios from 'axios';
  * Get nearby places from Geoapify
  * GET /api/v1/nearby?category=...&lat=...&lng=...&radius=...
  */
-export const getNearbyPlaces = async (req, res) => {
+export const getNearbyPlaces = async (req, res, next) => {
     try {
         const { category, lat, lng, radius = 5000 } = req.query;
 
@@ -50,7 +50,6 @@ export const getNearbyPlaces = async (req, res) => {
 
         res.status(200).json(places);
     } catch (error) {
-        console.error('Error fetching nearby places:', error.message);
-        res.status(500).json({ error: 'Failed to fetch nearby places' });
+        next(error);
     }
 };
