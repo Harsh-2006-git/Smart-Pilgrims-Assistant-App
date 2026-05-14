@@ -2,7 +2,7 @@ import Ticket from "../models/ticket.js";
 import Client from "../models/client.js";
 import QRCode from "qrcode";
 // Create Ticket
-export const createTicket = async (req, res) => {
+export const createTicket = async (req, res, next) => {
   try {
     const { date, time, temple, no_of_tickets, category } = req.body;
     const client_id = req.user.client_id;
@@ -42,12 +42,12 @@ export const createTicket = async (req, res) => {
     await ticket.save();
     res.status(201).json(ticket);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // Get Tickets by Client ID
-export const getTicketsByClient = async (req, res) => {
+export const getTicketsByClient = async (req, res, next) => {
   try {
     const client_id = req.user.client_id;
 
@@ -78,6 +78,6 @@ export const getTicketsByClient = async (req, res) => {
 
     res.json(tickets);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
