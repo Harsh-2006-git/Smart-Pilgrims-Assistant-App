@@ -3,7 +3,7 @@ import FamilyMember from "../models/familyMember.js";
 import QRCode from "qrcode";
 import { v4 as uuidv4 } from "uuid";
 
-export const addFamilyMember = async (req, res) => {
+export const addFamilyMember = async (req, res, next) => {
     try {
         const { name, relationship } = req.body;
         const { client_id } = req.user;
@@ -28,23 +28,21 @@ export const addFamilyMember = async (req, res) => {
 
         res.status(201).json({ message: "Family member added", member });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-export const getFamilyMembers = async (req, res) => {
+export const getFamilyMembers = async (req, res, next) => {
     try {
         const { client_id } = req.user;
         const members = await FamilyMember.findAll({ where: { client_id } });
         res.json({ members });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-export const deleteFamilyMember = async (req, res) => {
+export const deleteFamilyMember = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { client_id } = req.user;
@@ -57,7 +55,6 @@ export const deleteFamilyMember = async (req, res) => {
 
         res.json({ message: "Member removed" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
