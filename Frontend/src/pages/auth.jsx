@@ -148,7 +148,7 @@ const Auth = ({ setIsAuthenticated }) => {
         <div className="w-full lg:w-3/5 space-y-4 md:space-y-10 animate-in fade-in slide-in-from-left-8 duration-700">
           <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
             <div className="w-12 h-12 md:w-24 md:h-24 flex items-center justify-center">
-               <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+               <img src={logo} alt="Divya Yatra Application Logo" className="w-full h-full object-contain" />
             </div>
             <div>
                <h3 className="text-xl md:text-3xl font-black text-slate-800 tracking-tight leading-none uppercase">DIVYA YATRA</h3>
@@ -447,7 +447,7 @@ const Auth = ({ setIsAuthenticated }) => {
                     <div className="flex animate-marquee hover:[animation-play-state:paused] w-max py-2">
                       {[...slides, ...slides, ...slides, ...slides].map((imgUrl, index) => (
                         <div key={index} className="w-[100px] md:w-[160px] h-[60px] md:h-[95px] flex-shrink-0 mx-[4px]">
-                           <img src={imgUrl} alt="Sacred site" className="w-full h-full object-cover rounded-lg border border-slate-200 shadow-sm" />
+                           <img src={imgUrl} alt={`Glimpse of a sacred temple site: ${index % slides.length + 1}`} className="w-full h-full object-cover rounded-lg border border-slate-200 shadow-sm" />
                         </div>
                       ))}
                     </div>

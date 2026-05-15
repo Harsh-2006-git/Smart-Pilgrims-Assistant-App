@@ -389,7 +389,7 @@ const HomePage2 = () => {
 
                   <div className="relative z-20 flex flex-col items-center">
                     <div className="w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full overflow-hidden border-2 md:border-4 border-orange-400/40 shadow-[0_0_30px_rgba(234,88,12,0.4)] bg-transparent">
-                      <img src={logo} alt="Divya Yatra Logo" className="w-full h-full object-cover filter brightness-110" />
+                      <img src={logo} alt="Official Divya Yatra Application Logo" className="w-full h-full object-cover filter brightness-110" />
                     </div>
                     <div className="flex flex-col items-center mt-3 md:mt-4 z-30">
                       <div className="w-6 md:w-8 h-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mb-1 shadow-[0_0_10px_rgba(234,88,12,0.6)]"></div>

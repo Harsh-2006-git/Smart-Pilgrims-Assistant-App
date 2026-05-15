@@ -425,7 +425,7 @@ const AdminPage = () => {
                                                                 {u.profile_image ? (
                                                                     <img
                                                                         src={getImageUrl(u.profile_image)}
-                                                                        alt={u.name}
+                                                                        alt={`${u.name}'s Profile Picture`}
                                                                         className="w-full h-full object-cover"
                                                                     />
                                                                 ) : (
@@ -598,7 +598,7 @@ const AdminPage = () => {
                                                             <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200">
                                                                 <img
                                                                     src={getImageUrl(item.image)}
-                                                                    alt="Item"
+                                                                    alt={`Photograph of reported item: ${item.title}`}
                                                                     className="w-full h-full object-cover"
                                                                 />
                                                             </div>
@@ -753,6 +753,7 @@ const AdminPage = () => {
                                                     <div className="flex items-start gap-3 md:gap-4">
                                                         <img
                                                             src={getImageUrl(sos.Client?.profile_image) || "https://img.freepik.com/free-vector/user-blue-gradient_78370-4692.jpg"}
+                                                            alt={`${sos.Client?.name}'s Profile Picture`}
                                                             className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.25rem] object-cover border-2 border-slate-50 shadow-sm"
                                                         />
                                                         <div className="flex-1 min-w-0">

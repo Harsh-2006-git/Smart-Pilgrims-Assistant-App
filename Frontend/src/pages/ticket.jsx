@@ -681,7 +681,7 @@ const DivyaYatraBooking = () => {
 
                   <div className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100">
                     {ticket.qr_code ? (
-                      <img src={ticket.qr_code} alt="QR" className="w-20 h-20 md:w-40 md:h-40 object-contain" />
+                      <img src={ticket.qr_code} alt={`QR code for ticket ${ticket.ticket_id}`} className="w-20 h-20 md:w-40 md:h-40 object-contain" />
                     ) : (
                       <QrCode className="w-20 h-20 md:w-40 md:h-40 text-gray-200" />
                     )}
@@ -896,7 +896,7 @@ const DivyaYatraBooking = () => {
                 {selectedTicket.qr_code ? (
                   <img
                     src={selectedTicket.qr_code}
-                    alt="QR Code"
+                    alt={`QR code for ticket ${selectedTicket.ticket_id}`}
                     className="w-64 h-64 mx-auto border-4 border-gray-200 rounded-lg"
                   />
                 ) : (

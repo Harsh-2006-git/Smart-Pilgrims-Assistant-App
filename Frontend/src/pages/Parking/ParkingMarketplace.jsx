@@ -256,7 +256,7 @@ const ParkingMarketplace = () => {
                         ) : filteredSlots.map((slot) => (
                             <div key={slot.slot_id} className="bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all group">
                                 <div className="h-44 overflow-hidden relative">
-                                    <img src={getImageUrl(slot.images?.[0])} className="w-full h-full object-cover" alt={slot.title} />
+                                    <img src={getImageUrl(slot.images?.[0])} className="w-full h-full object-cover" alt={`Preview of parking slot: ${slot.title} located at ${slot.address}`} />
                                     <div className="absolute top-4 left-4">
                                         <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[8px] font-black text-orange-600 uppercase tracking-widest shadow-sm">
                                             {slot.parkingType}

@@ -465,7 +465,7 @@ const LostAndFound: React.FC = () => {
                         {item.image ? (
                           <img
                             src={resolveMediaUrl(`/uploads/${item.image}`)}
-                            alt={item.title}
+                            alt={`Photograph of ${item.title}`}
                             className="max-w-full max-h-full object-contain drop-shadow-md rounded-xl"
                           />
                         ) : (

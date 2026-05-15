@@ -420,11 +420,7 @@ const ProfileRfidPage = () => {
                     <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-white border-2 border-slate-100 shadow-sm transition-transform active:scale-95">
                       <div className="w-full h-full rounded-full bg-slate-50 overflow-hidden flex items-center justify-center">
                         {previewUrl || (user.profile_image ? resolveMediaUrl(user.profile_image) : null) ? (
-                          <img
-                            src={previewUrl || resolveMediaUrl(user.profile_image)}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={previewUrl || resolveMediaUrl(user.profile_image)} alt={`${user.name}'s Profile Picture`} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-orange-100 text-orange-600 text-4xl font-black">
                             {user.name?.[0].toUpperCase()}
@@ -554,7 +550,7 @@ const ProfileRfidPage = () => {
                     </div>
                     <div className="flex justify-between items-start relative z-10 mb-8">
                       <div className="flex items-center gap-3">
-                        <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />
+                        <img src={logo} alt="Divya Yatra Mandir Logo" className="h-full w-auto object-contain" onError={() => setImgError(true)} />
                         <div className="border-l border-slate-200 pl-3">
                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600 mb-0.5">DIVYA</p>
                           <p className="text-[11px] font-bold text-slate-400">SMART TRAVELER</p>
@@ -586,7 +582,7 @@ const ProfileRfidPage = () => {
                         </div>
                       </div>
                       <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-100 ring-4 ring-slate-50">
-                        <img src={rfidData?.qrImage} alt="QR" className="w-20 h-20" />
+                        <img src={rfidData?.qrImage} alt={`QR code for ${user.name}'s digital pass`} className="w-20 h-20" />
                       </div>
                     </div>
                   </div>
@@ -598,11 +594,11 @@ const ProfileRfidPage = () => {
                     </div>
                     <div className="relative z-10 h-full flex flex-col items-center justify-center">
                       <div className="mb-4 text-center">
-                        <img src={logo} alt="Logo" className="h-10 mx-auto mb-2 brightness-0 invert opacity-40" />
+                        <img src={logo} alt="" role="presentation" className="h-10 mx-auto mb-2 brightness-0 invert opacity-40" />
                         <p className="text-[8px] font-black tracking-[0.4em] text-orange-400 uppercase">Sacred Journey Verified</p>
                       </div>
                       <div className="bg-white p-5 rounded-[2.5rem] shadow-[0_0_50px_rgba(249,115,22,0.3)] transform transition-transform">
-                        <img src={rfidData?.qrImage} alt="Large QR" className="w-44 h-44 object-contain" />
+                        <img src={rfidData?.qrImage} alt={`Enlarged QR code for ${user.name}'s digital pass`} className="w-44 h-44 object-contain" />
                       </div>
                       <div className="mt-6 text-center">
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Scan for Fast Access & Navigation</p>
@@ -644,7 +640,7 @@ const ProfileRfidPage = () => {
                           {!imgError ? (
                             <img
                               src={logo}
-                              alt="Mandir Logo"
+                              alt="Divya Yatra Mandir Logo"
                               className="h-full w-auto object-contain"
                               onError={() => setImgError(true)}
                             />
@@ -698,7 +694,7 @@ const ProfileRfidPage = () => {
                       <div className="group/qr relative -mr-2 sm:mr-0 scale-90 sm:scale-100">
                         <div className="absolute -inset-2 bg-gradient-to-tr from-orange-500/10 to-transparent blur-xl rounded-full opacity-0 group-hover/qr:opacity-100 transition-opacity"></div>
                         <div className="bg-white p-1.5 sm:p-2 rounded-xl sm:rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-slate-100 ring-4 ring-slate-50 relative z-10">
-                          <img src={rfidData.qrImage} alt="QR" className="w-14 h-14 sm:w-20 sm:h-20 object-contain" />
+                          <img src={rfidData.qrImage} alt={`QR Code for ${user.name}`} className="w-14 h-14 sm:w-20 sm:h-20 object-contain" />
                         </div>
                       </div>
                     </div>
@@ -755,7 +751,7 @@ const ProfileRfidPage = () => {
                     <div key={member.member_id} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-orange-200 transition-all">
                       <div className="flex items-center gap-4">
                         <div className="bg-slate-50 p-2 rounded-xl">
-                          <img src={member.qr_image} alt="QR" className="w-12 h-12" />
+                          <img src={member.qr_image} alt={`QR Code for family member ${member.name}`} className="w-12 h-12" />
                         </div>
                         <div>
                           <h5 className="text-sm font-black text-slate-900 leading-tight">{member.name}</h5>
@@ -1000,7 +996,7 @@ const ProfileRfidPage = () => {
                   >
                     <div className="w-20 h-20 rounded-full bg-white p-1 border-2 border-blue-100 shadow-sm">
                       {searchResult.profile_image ? (
-                        <img src={resolveMediaUrl(searchResult.profile_image)} className="w-full h-full rounded-full object-cover" />
+                        <img src={resolveMediaUrl(searchResult.profile_image)} alt={`${searchResult.name}'s Profile Picture`} className="w-full h-full rounded-full object-cover" />
                       ) : (
                         <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-black">
                           {searchResult.name[0]}

@@ -96,7 +96,7 @@ const MyBookings = () => {
                                     className={`bg-white p-6 rounded-[2.5rem] border-2 cursor-pointer transition-all flex items-center gap-6 ${selectedBooking?.booking_id === booking.booking_id ? 'border-orange-500 shadow-xl scale-[1.02]' : 'border-transparent shadow-sm hover:border-gray-100'}`}
                                 >
                                     <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 hidden sm:block shrink-0 ring-4 ring-gray-50">
-                                        <img src={getImageUrl(booking.parkingSlot?.images?.[0])} className="w-full h-full object-cover" alt="slot" />
+                                        <img src={getImageUrl(booking.parkingSlot?.images?.[0])} className="w-full h-full object-cover" alt={`Preview of booked parking slot: ${booking.parkingSlot?.title}`} />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-start mb-1">
@@ -126,7 +126,7 @@ const MyBookings = () => {
                                         <Sparkles size={10} className="text-orange-500" /> Virtual Pass
                                     </div>
                                     <div className="bg-gray-50 p-6 rounded-[2rem] inline-block mb-6 border border-gray-100">
-                                        <img src={selectedBooking.qrCode} className="w-56 h-56" alt="QR" />
+                                        <img src={selectedBooking.qrCode} className="w-56 h-56" alt={`Entry QR Code for reservation #${selectedBooking.booking_id} at ${selectedBooking.parkingSlot?.title}`} />
                                     </div>
                                     <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-2">Ready to Enter</h3>
                                     <p className="text-gray-400 font-bold uppercase text-[9px] tracking-widest">Scan this at the entrance checkpoint</p>

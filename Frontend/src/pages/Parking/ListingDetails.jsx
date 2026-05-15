@@ -131,7 +131,7 @@ const ListingDetails = () => {
                         {/* Media & Info */}
                         <div className="lg:col-span-7 space-y-10">
                             <div className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl bg-white border border-gray-100 p-2">
-                                <img src={getImageUrl(slot.images?.[0])} className="w-full h-full object-cover rounded-[2.5rem]" alt={slot.title} />
+                                <img src={getImageUrl(slot.images?.[0])} className="w-full h-full object-cover rounded-[2.5rem]" alt={`High resolution view of ${slot.title} parking space`} />
                             </div>
                             <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
                                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Infrastructure Logs</h3>

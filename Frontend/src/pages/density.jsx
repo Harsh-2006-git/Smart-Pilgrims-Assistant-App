@@ -510,13 +510,11 @@ const Dashboard = () => {
                     </span>
                     <span className="text-xs font-bold text-green-700 uppercase tracking-wide">Live Data</span>
                   </div>
-                </div>
-
                 <div className="">
                   <div className="relative">
                     <img
                       src="https://archive.org/download/ujjain_district_madhya_pradesh_election_2018_map/ujjain_district_madhya_pradesh_election_2018_map.jpg"
-                      alt="Ujjain Map"
+                      alt="Map of Ujjain District showing various monitoring zones"
                       className="rounded-xl w-full border-2 border-orange-100"
                     />
                     <div className="absolute inset-0">
