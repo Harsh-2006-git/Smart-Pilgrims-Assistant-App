@@ -33,6 +33,7 @@ const Header = () => {
     const guideRef = useRef(null);
     const langRef = useRef(null);
     const [user, setUser] = useState(null);
+    const [activeSection, setActiveSection] = useState("/");
 
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
@@ -152,13 +153,19 @@ const Header = () => {
         setIsMenuOpen(false);
         setIsProfileOpen(false);
         if (target.startsWith("http")) { window.location.href = target; return; }
-        if (target.startsWith("/")) { navigate(target); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+        if (target.startsWith("/")) {
+            navigate(target);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setActiveSection(target);
+            return;
+        }
         if (location.pathname === "/") {
             const section = document.getElementById(target);
             if (section) {
                 const offset = 100;
                 const sectionTop = section.getBoundingClientRect().top + window.scrollY;
                 window.scrollTo({ top: sectionTop - offset, behavior: "smooth" });
+                setActiveSection(target);
                 return;
             }
         }
@@ -186,6 +193,66 @@ const Header = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (location.pathname !== "/") return;
+
+        const sectionIds = navItems
+            .filter(item => !item.target.startsWith("/"))
+            .map(item => item.target);
+
+        const HEADER_HEIGHT = 100;
+
+        const handleScroll = () => {
+            const scrollY = window.scrollY;
+
+            const heroEl = document.getElementById("hero");
+            if (heroEl) {
+                const heroBottom = heroEl.getBoundingClientRect().bottom + scrollY;
+                if (scrollY + HEADER_HEIGHT < heroBottom) {
+                    setActiveSection("/");
+                    return;
+                }
+            } else if (scrollY < HEADER_HEIGHT) {
+                setActiveSection("/");
+                return;
+            }
+
+            const allSectionIds = ["services", "darshan", "about"];
+    
+            let current = null;
+            for (const id of allSectionIds) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                const top = el.getBoundingClientRect().top + scrollY - HEADER_HEIGHT;
+                if (scrollY >= top - 10) current = id;
+            }
+
+            if (current === null) return;
+
+            const sectionToNav = {
+                "services": "services",
+                "darshan": "services",
+                "about": "services",
+            };
+
+            const navTarget = sectionToNav[current];
+            if (navTarget) setActiveSection(navTarget);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        handleScroll();
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        const matchedItem = navItems.find(item => item.target === location.pathname);
+        if (matchedItem) {
+            setActiveSection(location.pathname);
+        } else if (location.pathname === "/") {
+            setActiveSection("/");
+        }
+    }, [location.pathname]);
 
     const navItems = [
         { name: "Home", target: "/" },
@@ -244,7 +311,7 @@ const Header = () => {
                             <button
                                 key={item.name}
                                 onClick={() => handleNavigation(item.target)}
-                                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${(location.pathname === item.target || (location.pathname === '/' && location.hash === `#${item.target}`)) ? "bg-white text-orange-600 shadow-sm" : "text-slate-500 hover:text-orange-600 hover:bg-white/50"}`}
+                                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${(activeSection === item.target) ? "bg-white text-orange-600 shadow-sm" : "text-slate-500 hover:text-orange-600 hover:bg-white/50"}`}
                             >
                                 {item.name}
                             </button>

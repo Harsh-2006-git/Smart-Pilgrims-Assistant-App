@@ -279,6 +279,7 @@ const HomePage2 = () => {
 
       {/* Hero Section with Scroll Animation */}
       <section
+        id="hero"
         ref={heroContainerRef}
         className={`relative w-full ${imagesPreloaded ? "h-[250vh]" : "h-[calc(100vh-80px)]"} mt-[80px] bg-transparent transition-all duration-700`}
       >
