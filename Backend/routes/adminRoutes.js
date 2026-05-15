@@ -2,6 +2,7 @@ import express from "express";
 import {
     getAdminStats,
     getAllUsers,
+    getAllStayListingsForAdmin,
     getAllTickets,
     getAllLostFound,
     getZoneDensity,
@@ -10,23 +11,32 @@ import {
     deactivateAlert,
     handleSOS,
     getSOSAlerts,
-    deleteSOS
+    deleteSOS,
+    moderateStayListing,
+    updateUserStayHostAccess
 } from "../controllers/adminController.js";
 import authenticateClient from "../middlewares/authMiddleware.js";
+import { requireAdmin } from "../middlewares/authorizeAccess.js";
 
 const router = express.Router();
 
-// Apply auth middleware for safety (could also check for isAdmin role)
-router.get("/stats", authenticateClient, getAdminStats);
-router.get("/users", authenticateClient, getAllUsers);
-router.get("/tickets", authenticateClient, getAllTickets);
-router.get("/lostfound", authenticateClient, getAllLostFound);
-router.get("/density", authenticateClient, getZoneDensity);
 router.get("/alerts/active", getActiveAlerts); // Public access for AlertBanner
-router.post("/alerts", authenticateClient, createAlert); // Admin only alert creation
-router.patch("/alerts/:id/deactivate", authenticateClient, deactivateAlert);
-router.post("/sos", authenticateClient, handleSOS);
-router.get("/sos", authenticateClient, getSOSAlerts);
-router.delete("/sos/:id", authenticateClient, deleteSOS);
+
+router.use(authenticateClient);
+router.post("/sos", handleSOS);
+router.use(requireAdmin);
+
+router.get("/stats", getAdminStats);
+router.get("/users", getAllUsers);
+router.patch("/users/:id/stay-host", updateUserStayHostAccess);
+router.get("/tickets", getAllTickets);
+router.get("/lostfound", getAllLostFound);
+router.get("/density", getZoneDensity);
+router.get("/stays", getAllStayListingsForAdmin);
+router.patch("/stays/:id/moderate", moderateStayListing);
+router.post("/alerts", createAlert); // Admin only alert creation
+router.patch("/alerts/:id/deactivate", deactivateAlert);
+router.get("/sos", getSOSAlerts);
+router.delete("/sos/:id", deleteSOS);
 
 export default router;

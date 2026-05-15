@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
     Users,
     Activity,
     Package,
     Ticket,
+    Building2,
     Monitor,
-    Settings,
-    BarChart3,
-    ArrowUpRight,
     Search,
     CheckCircle2,
     Clock,
     AlertCircle,
-    MoreVertical,
     ChevronRight,
     ShieldCheck,
 
@@ -24,11 +21,10 @@ import {
     ShieldAlert,
     Navigation,
     MapPin,
-    ExternalLink,
-    ChevronDown
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { getStayListingStatusMeta, getStoredUser, isAdminUser } from '../utils/access';
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState('overview');
@@ -41,12 +37,16 @@ const AdminPage = () => {
     });
 
     const [users, setUsers] = useState([]);
+    const [stays, setStays] = useState([]);
     const [lostItems, setLostItems] = useState([]);
     const [bookings, setBookings] = useState([]);
     const [zoneData, setZoneData] = useState([]);
     const [alerts, setAlerts] = useState([]);
     const [sosAlerts, setSosAlerts] = useState([]);
-    const [isPushing, setIsPushing] = useState(false);
+    const [userSearch, setUserSearch] = useState('');
+    const [userActionId, setUserActionId] = useState(null);
+    const [stayActionId, setStayActionId] = useState(null);
+    const currentUser = useMemo(() => getStoredUser(), []);
     const templates = {
         crowd: {
             title: "CROWD ALERT",
@@ -69,17 +69,12 @@ const AdminPage = () => {
 
     const BACKEND_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/v1/admin`;
 
-    useEffect(() => {
-        // Support direct tab linking via search params (e.g. /admin?tab=sos)
-        const params = new URLSearchParams(window.location.search);
-        const requestedTab = params.get('tab');
-        if (requestedTab && ['overview', 'users', 'bookings', 'density', 'alerts', 'sos'].includes(requestedTab)) {
-            setActiveTab(requestedTab);
+    const fetchDashboardData = useCallback(async () => {
+        if (!isAdminUser(currentUser)) {
+            setLoading(false);
+            return;
         }
-        fetchDashboardData();
-    }, []);
 
-    const fetchDashboardData = async () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         const headers = { 'Authorization': `Bearer ${token}` };
@@ -93,6 +88,10 @@ const AdminPage = () => {
             // Fetch Users
             const usersRes = await fetch(`${BACKEND_URL}/users`, { headers });
             setUsers(await usersRes.json());
+
+            // Fetch Stays
+            const staysRes = await fetch(`${BACKEND_URL}/stays`, { headers });
+            setStays(await staysRes.json());
 
             // Fetch Lost Items
             const lostRes = await fetch(`${BACKEND_URL}/lostfound`, { headers });
@@ -121,6 +120,88 @@ const AdminPage = () => {
             console.error("Master Console Error:", error);
         } finally {
             setLoading(false);
+        }
+    }, [BACKEND_URL, currentUser]);
+
+    useEffect(() => {
+        if (!isAdminUser(currentUser)) {
+            setLoading(false);
+            return;
+        }
+        // Support direct tab linking via search params (e.g. /admin?tab=sos)
+        const params = new URLSearchParams(window.location.search);
+        const requestedTab = params.get('tab');
+        if (requestedTab && ['overview', 'users', 'stays', 'bookings', 'density', 'alerts', 'sos'].includes(requestedTab)) {
+            setActiveTab(requestedTab);
+        }
+        fetchDashboardData();
+    }, [currentUser, fetchDashboardData]);
+
+    const filteredUsers = useMemo(() => {
+        const query = userSearch.trim().toLowerCase();
+        // Exclude Admin accounts from the devotees/users panel
+        const nonAdmins = users.filter(u => u.userType !== 'Admin');
+        if (!query) return nonAdmins;
+
+        return nonAdmins.filter((user) =>
+            [user.name, user.email, user.phone, user.userType, `id-${user.client_id}`]
+                .filter(Boolean)
+                .some((value) => value.toLowerCase().includes(query))
+        );
+    }, [userSearch, users]);
+
+    const updateStayHostAccess = async (userId, stayHostVerified) => {
+        try {
+            setUserActionId(userId);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/users/${userId}/stay-host`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ stayHostVerified })
+            });
+
+            if (res.ok) {
+                fetchDashboardData();
+            }
+        } catch (error) {
+            console.error("Update Stay Host Access Error:", error);
+        } finally {
+            setUserActionId(null);
+        }
+    };
+
+    const moderateStay = async (stayId, action) => {
+        try {
+            setStayActionId(stayId);
+            const token = localStorage.getItem('token');
+            const reason = action === 'reject'
+                ? window.prompt('Enter a rejection reason for this stay listing:')
+                : null;
+
+            if (action === 'reject' && !reason?.trim()) {
+                setStayActionId(null);
+                return;
+            }
+
+            const res = await fetch(`${BACKEND_URL}/stays/${stayId}/moderate`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ action, reason })
+            });
+
+            if (res.ok) {
+                fetchDashboardData();
+            }
+        } catch (error) {
+            console.error("Moderate Stay Error:", error);
+        } finally {
+            setStayActionId(null);
         }
     };
 
@@ -195,6 +276,7 @@ const AdminPage = () => {
     const tabs = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
         { id: 'users', label: 'Devotees', icon: Users },
+        { id: 'stays', label: 'Stay Moderation', icon: Building2 },
         { id: 'crowd', label: 'Flow & Crowd', icon: Activity },
         { id: 'lostfound', label: 'Lost & Found', icon: Package },
         { id: 'bookings', label: 'Bookings', icon: Ticket },
@@ -203,6 +285,26 @@ const AdminPage = () => {
     ];
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    if (!isAdminUser(currentUser)) {
+        return (
+            <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col">
+                <Header />
+                <div className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
+                    <div className="max-w-2xl rounded-[2.5rem] border border-slate-200 bg-white p-10 text-center shadow-sm">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-rose-50 text-rose-600">
+                            <ShieldAlert size={30} />
+                        </div>
+                        <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900">Admin access required</h1>
+                        <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                            This dashboard is restricted to administrator accounts only.
+                        </p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col overflow-x-hidden">
@@ -304,11 +406,13 @@ const AdminPage = () => {
                             </div>
                         ) : activeTab === 'overview' && (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+                                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6 mb-6">
                                     {[
                                         { label: 'Total Devotees', val: stats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
                                         { label: 'Active Bookings', val: stats.totalCapacity, icon: Ticket, color: 'text-orange-600', bg: 'bg-orange-50' },
                                         { label: 'Reported Items', val: stats.totalLostItems, icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                                        { label: 'Stay Listings', val: stats.totalStayListings, icon: Building2, color: 'text-amber-600', bg: 'bg-amber-50' },
+                                        { label: 'Pending Stays', val: stats.pendingStayListings, icon: Clock, color: 'text-rose-600', bg: 'bg-rose-50' },
                                     ].map((s, idx) => (
                                         <div key={idx} className="bg-white p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-lg transition-all group">
                                             <div className={`${s.bg} ${s.color} w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 transition-transform`}>
@@ -402,22 +506,28 @@ const AdminPage = () => {
                                     <h3 className="text-lg md:text-2xl font-black">All Devotees</h3>
                                     <div className="relative w-full md:w-64">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input type="text" placeholder="Search by name or ID..." className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:border-orange-500 outline-none w-full shadow-sm" />
+                                        <input
+                                            type="text"
+                                            value={userSearch}
+                                            onChange={(e) => setUserSearch(e.target.value)}
+                                            placeholder="Search by name, role, phone..."
+                                            className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:border-orange-500 outline-none w-full shadow-sm"
+                                        />
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto w-full">
                                     <table className="w-full text-left min-w-[600px]">
                                         <thead>
                                             <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest text-[9px] md:text-[10px]">
-                                                <th className="px-4 md:px-8 py-5">Devotee</th>
+                                                <th className="px-4 md:px-8 py-5">User</th>
                                                 <th className="px-4 md:px-8 py-5">Category</th>
-                                                <th className="px-4 md:px-8 py-5">Status</th>
+                                                <th className="px-4 md:px-8 py-5">Host Access</th>
                                                 <th className="px-4 md:px-8 py-5">Date</th>
-                                                <th className="px-4 md:px-8 py-5">Op</th>
+                                                <th className="px-4 md:px-8 py-5">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
-                                            {users.map(u => (
+                                            {filteredUsers.map(u => (
                                                 <tr key={u.client_id} className="hover:bg-slate-50 transition-colors">
                                                     <td className="px-4 md:px-8 py-4 md:py-5">
                                                         <div className="flex items-center gap-2 md:gap-3">
@@ -440,27 +550,156 @@ const AdminPage = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-4 md:px-8 py-4 md:py-5">
-                                                        <span className={`px-2 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase ${u.userType === 'Premium' ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                        <span className={`px-2 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase ${
+                                                            u.userType === 'Admin' ? 'bg-rose-100 text-rose-600' :
+                                                            u.userType === 'StayOwner' ? 'bg-indigo-100 text-indigo-600' :
+                                                            u.userType === 'VIP' ? 'bg-amber-100 text-amber-600' :
+                                                            u.userType === 'Premium' ? 'bg-orange-100 text-orange-600' :
+                                                            'bg-slate-100 text-slate-600'
+                                                        }`}>
                                                             {u.userType}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 md:px-8 py-4 md:py-5">
-                                                        <div className="flex items-center gap-1.5 md:gap-2">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                                            <span className="text-[10px] md:text-xs font-bold text-slate-600">Registered</span>
-                                                        </div>
+                                                        <span className={`px-2 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase ${u.stayHostVerified ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                            {u.stayHostVerified ? 'Verified Host' : 'Pilgrim Only'}
+                                                        </span>
                                                     </td>
                                                     <td className="px-4 md:px-8 py-4 md:py-5 text-xs md:sm font-medium text-slate-500">{new Date(u.created_at).toLocaleDateString()}</td>
 
                                                     <td className="px-8 py-5">
-                                                        <button className="p-2 hover:bg-white rounded-lg text-slate-300 hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">
-                                                            <MoreVertical size={16} />
+                                                        <button
+                                                            onClick={() => updateStayHostAccess(u.client_id, !u.stayHostVerified)}
+                                                            disabled={userActionId === u.client_id || u.userType === 'Admin'}
+                                                            className={`rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                                                                u.userType === 'Admin'
+                                                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                                    : u.stayHostVerified
+                                                                        ? 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                                                                        : 'bg-slate-900 text-white hover:bg-orange-600'
+                                                            }`}
+                                                        >
+                                                            {userActionId === u.client_id
+                                                                ? 'Saving...'
+                                                                : u.userType === 'Admin'
+                                                                    ? 'Admin'
+                                                                    : u.stayHostVerified
+                                                                        ? 'Revoke Host'
+                                                                        : 'Grant Host'}
                                                         </button>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'stays' && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Listings</p>
+                                        <p className="mt-3 text-3xl font-black text-slate-900">{stays.length}</p>
+                                    </div>
+                                    <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Pending Review</p>
+                                        <p className="mt-3 text-3xl font-black text-amber-600">{stays.filter((stay) => stay.isActive && stay.moderationStatus === "Pending").length}</p>
+                                    </div>
+                                    <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Live Listings</p>
+                                        <p className="mt-3 text-3xl font-black text-emerald-600">{stays.filter((stay) => stay.isActive && stay.moderationStatus === "Approved").length}</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-3xl md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                                    <div className="p-4 md:p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                                        <div>
+                                            <h3 className="text-lg md:text-2xl font-black">Stay Moderation Queue</h3>
+                                            <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                Approve new listings, suspend live properties, or reactivate reviewed stays.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 p-4 md:p-8">
+                                        {stays.length === 0 ? (
+                                            <div className="rounded-[2rem] border border-dashed border-slate-200 p-10 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                No stay listings have been submitted yet
+                                            </div>
+                                        ) : (
+                                            stays.map((stay) => {
+                                                const status = getStayListingStatusMeta(stay);
+                                                return (
+                                                    <div key={stay.stay_id} className="rounded-[2rem] border border-slate-100 bg-slate-50/50 p-5">
+                                                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                                                            <div>
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <span className="rounded-full bg-white px-3 py-1 text-[9px] font-black uppercase tracking-widest text-orange-600">
+                                                                        {stay.stayType}
+                                                                    </span>
+                                                                    <span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${status.className}`}>
+                                                                        {status.label}
+                                                                    </span>
+                                                                    {stay.owner?.stayHostVerified ? (
+                                                                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-600">
+                                                                            Verified Host
+                                                                        </span>
+                                                                    ) : null}
+                                                                </div>
+                                                                <h4 className="mt-3 text-xl font-black uppercase tracking-tight text-slate-900">{stay.propertyName}</h4>
+                                                                <p className="mt-2 text-sm font-bold text-slate-600">
+                                                                    {stay.owner?.name || stay.ownerName} • {stay.city}, {stay.state}
+                                                                </p>
+                                                                <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                                    Rs. {stay.pricePerNight} / night • {stay.availableRooms} room(s)
+                                                                </p>
+                                                            </div>
+
+                                                            <div className="flex flex-wrap gap-3">
+                                                                {stay.moderationStatus !== "Approved" || !stay.isActive ? (
+                                                                    <button
+                                                                        onClick={() => moderateStay(stay.stay_id, "approve")}
+                                                                        disabled={stayActionId === stay.stay_id}
+                                                                        className="rounded-xl bg-emerald-600 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white transition-all hover:bg-emerald-700"
+                                                                    >
+                                                                        {stayActionId === stay.stay_id ? 'Saving...' : 'Approve'}
+                                                                    </button>
+                                                                ) : null}
+
+                                                                {stay.isActive ? (
+                                                                    <button
+                                                                        onClick={() => moderateStay(stay.stay_id, "suspend")}
+                                                                        disabled={stayActionId === stay.stay_id}
+                                                                        className="rounded-xl bg-rose-50 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-rose-600 transition-all hover:bg-rose-100"
+                                                                    >
+                                                                        Suspend
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => moderateStay(stay.stay_id, stay.moderationStatus === "Approved" ? "reactivate" : "approve")}
+                                                                        disabled={stayActionId === stay.stay_id}
+                                                                        className="rounded-xl bg-slate-900 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white transition-all hover:bg-orange-600"
+                                                                    >
+                                                                        Reactivate
+                                                                    </button>
+                                                                )}
+
+                                                                <button
+                                                                    onClick={() => moderateStay(stay.stay_id, "reject")}
+                                                                    disabled={stayActionId === stay.stay_id}
+                                                                    className="rounded-xl bg-white px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-600 ring-1 ring-slate-200 transition-all hover:text-rose-600"
+                                                                >
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

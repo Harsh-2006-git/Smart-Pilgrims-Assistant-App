@@ -22,7 +22,10 @@ const authenticateClient = async (req, res, next) => {
     // 1. Try local JWT verification first
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+      req.user = {
+        ...decoded,
+        stayHostVerified: Boolean(decoded.stayHostVerified),
+      };
       return next();
     } catch (localErr) {
       // 2. If local verification fails, check if it's a Google ID Token
@@ -58,6 +61,7 @@ const authenticateClient = async (req, res, next) => {
           phone: client.phone,
           email: client.email,
           userType: client.userType,
+          stayHostVerified: client.stayHostVerified,
           unique_code: client.unique_code,
         };
         return next();
@@ -85,6 +89,7 @@ const authenticateClient = async (req, res, next) => {
                           phone: existingClient.phone,
                           email: existingClient.email,
                           userType: existingClient.userType,
+                          stayHostVerified: existingClient.stayHostVerified,
                           unique_code: existingClient.unique_code,
                         };
                         return next();

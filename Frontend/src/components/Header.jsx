@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Compass, User, LogOut, MapPin, ChevronDown, Globe, CreditCard, ShieldCheck } from "lucide-react";
+import { Menu, X, Compass, User, LogOut, ChevronDown, Globe, CreditCard, ShieldCheck } from "lucide-react";
 import GuidePage from "../pages/guide";
 import logo from "../assets/logo.png";
 import { resolveMediaUrl } from "../config/api";
+import { isAdminUser, isStayManager } from "../utils/access";
 
 const LANGUAGES = [
     { code: "en", label: "English", flag: "🇬🇧" },
@@ -191,8 +192,13 @@ const Header = () => {
         { name: "Home", target: "/" },
         { name: "Services", target: "services" },
         { name: "Family Mode", target: "/family-mode" },
+        { name: "Stays", target: "/stays" },
         { name: "Parking", target: "/parking" },
-        { name: "Admin", target: "/admin" },
+        // StayOwner / stayHostVerified → owner dashboard (NOT Admin)
+        ...(isStayManager(user) ? [{ name: "Stay Manager", target: "/owner/stays" }] : []),
+        // Admin → moderation panel + full admin console
+        ...(isAdminUser(user) ? [{ name: "Stay Review", target: "/admin/stays" }] : []),
+        ...(isAdminUser(user) ? [{ name: "Admin", target: "/admin" }] : []),
     ];
 
     return (
@@ -244,7 +250,7 @@ const Header = () => {
                             <button
                                 key={item.name}
                                 onClick={() => handleNavigation(item.target)}
-                                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${(location.pathname === item.target || (location.pathname === '/' && location.hash === `#${item.target}`)) ? "bg-white text-orange-600 shadow-sm" : "text-slate-500 hover:text-orange-600 hover:bg-white/50"}`}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${(location.pathname === item.target || (location.pathname === '/' && location.hash === `#${item.target}`)) ? "bg-white text-orange-600 shadow-sm" : "text-slate-500 hover:text-orange-600 hover:bg-white/50"}`}
                             >
                                 {item.name}
                             </button>
@@ -292,9 +298,11 @@ const Header = () => {
                                         </div>
                                     </div>
                                     <div className="p-1.5 bg-white space-y-0.5">
-                                        <button onClick={() => handleNavigation("/admin")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-orange-600 font-bold text-xs transition-all shadow-md shadow-slate-900/10 mb-1">
-                                            <ShieldCheck size={16} className="text-orange-400" /> Master Console
-                                        </button>
+                                        {isAdminUser(user) ? (
+                                            <button onClick={() => handleNavigation("/admin")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-orange-600 font-bold text-xs transition-all shadow-md shadow-slate-900/10 mb-1">
+                                                <ShieldCheck size={16} className="text-orange-400" /> Master Console
+                                            </button>
+                                        ) : null}
                                         <button onClick={() => handleNavigation("/profile")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><User size={16} className="text-slate-400" /> My Profile</button>
                                         <button onClick={() => handleNavigation("/nearby")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold text-xs transition-all"><Compass size={16} className="text-slate-400" /> Navigator</button>
                                         <div className="pt-1.5 mt-1.5 border-t border-slate-50">

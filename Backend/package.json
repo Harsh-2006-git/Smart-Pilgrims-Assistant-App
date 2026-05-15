@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
+    "start:nodb": "node -e \"process.env.SKIP_DB='true'; import('./index.js')\"",
     "dev": "nodemon index.js",
     "lint": "eslint src/**/*.js",
+    "check:db": "node -e \"import('./config/database.js').then(({ connectDB }) => connectDB()).catch((err) => { console.error(err); process.exit(1); })\"",
     "seed": "node -e 'import(\"./models/seed.js\").then(module => module.seedZones())'"
   },
   "keywords": [],

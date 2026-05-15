@@ -12,6 +12,8 @@ import TicketRoute from "./routes/ticketRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import parkingRoutes from "./routes/parkingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import stayRoutes from "./routes/stayRoutes.js";
+import stayBookingRoutes from "./routes/stayBookingRoutes.js";
 import familyMemberRoutes from "./routes/familyMemberRoutes.js";
 
 import nearbyRoutes from "./routes/nearbyRoutes.js";
@@ -28,6 +30,9 @@ import { initSocket } from "./socket/socketHandler.js";
 
 import { fileURLToPath } from "url";
 import crowdRoutes, { initCrowdAI } from "./routes/crowdRoutes.js";
+import { ensureClientSchema } from "./utils/ensureClientSchema.js";
+import { ensureStayBookingSchema } from "./utils/ensureStayBookingSchema.js";
+import { ensureStayRoomSchema } from "./utils/ensureStayRoomSchema.js";
 
 // Try loading local .env first, then fallback to parent directory .env
 dotenv.config();
@@ -101,6 +106,8 @@ app.use("/api/v1/ticket", TicketRoute);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/parking", parkingRoutes);
 app.use("/api/v1/booking", bookingRoutes);
+app.use("/api/v1/stays", stayRoutes);
+app.use("/api/v1/stay-bookings", stayBookingRoutes);
 app.use("/api/v1/family", familyMemberRoutes);
 
 app.use("/api/v1/nearby", nearbyRoutes);
@@ -118,9 +125,18 @@ const initializeApp = async () => {
   if (isInitialized) return;
   try {
     console.log("🔄 Divya Yatra Server Initializing...");
-    await connectDB();
-    await sequelize.sync();
-    console.log("✅ Database Connected");
+
+    const skipDb = String(process.env.SKIP_DB || "").toLowerCase() === "true";
+    if (skipDb) {
+      console.warn("⚠️ SKIP_DB=true: Skipping database connection/sync (many API routes will not work).");
+    } else {
+      await connectDB();
+      await sequelize.sync();
+      await ensureClientSchema();
+      await ensureStayBookingSchema();
+      await ensureStayRoomSchema();
+      console.log("✅ Database Connected");
+    }
 
     const backendRoot = path.dirname(fileURLToPath(import.meta.url));
     initCrowdAI(backendRoot);

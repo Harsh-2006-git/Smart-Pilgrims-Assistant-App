@@ -3,13 +3,24 @@ import jwt from "jsonwebtoken";
 import Client from "../models/client.js";
 import { v4 as uuidv4 } from "uuid";
 
+const SELF_REGISTERABLE_USER_TYPES = ["Civilian", "VIP", "Sadhu", "Admin", "Aged", "ParkingOwner", "Divyang"];
 
 export const register = async (req, res) => {
   try {
     const { name, phone, email, password, userType, adminSecret } = req.body;
+    const requestedUserType = userType || "Civilian";
+
+    if (!SELF_REGISTERABLE_USER_TYPES.includes(requestedUserType)) {
+      return res.status(400).json({
+        message:
+          requestedUserType === "StayOwner"
+            ? "Stay host access is granted by admin verification, not direct self-registration."
+            : "Invalid user type selected.",
+      });
+    }
 
     // Strict backend validation for Admin role
-    if (userType === "Admin") {
+    if (requestedUserType === "Admin") {
       const EXPECTED_ADMIN_SECRET = process.env.ADMIN_SECRET || "DIVYA-ADMIN-777";
       if (adminSecret !== EXPECTED_ADMIN_SECRET) {
         return res.status(403).json({ message: "Invalid Admin Secret Code. Registration denied." });
@@ -39,9 +50,10 @@ export const register = async (req, res) => {
       name,
       phone,
       email: email || null, // allow null if not provided
-      userType,
+      userType: requestedUserType,
       unique_code,
       password: hashedPassword,
+      stayHostVerified: false,
     });
 
     // generate jwt token right after registration
@@ -51,6 +63,7 @@ export const register = async (req, res) => {
         phone: client.phone,
         email: client.email,
         userType: client.userType,
+        stayHostVerified: client.stayHostVerified,
         unique_code: client.unique_code,
       },
       process.env.JWT_SECRET,
@@ -66,6 +79,7 @@ export const register = async (req, res) => {
         phone: client.phone,
         email: client.email,
         userType: client.userType,
+        stayHostVerified: client.stayHostVerified,
         unique_code: client.unique_code,
       },
     });
@@ -106,6 +120,7 @@ export const login = async (req, res) => {
         phone: client.phone,
         email: client.email,
         userType: client.userType,
+        stayHostVerified: client.stayHostVerified,
         unique_code: client.unique_code,
       },
       process.env.JWT_SECRET,
@@ -122,6 +137,7 @@ export const login = async (req, res) => {
         email: client.email,
         unique_code: client.unique_code,
         userType: client.userType,
+        stayHostVerified: client.stayHostVerified,
         profile_image: client.profile_image,
       },
     });
@@ -133,26 +149,20 @@ export const login = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, email, userType } = req.body;
+    const { name, phone, email } = req.body;
     const client = await Client.findByPk(req.user.client_id);
 
     if (!client) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Role change restriction
-    if (userType === "Admin" && client.userType !== "Admin") {
-      return res.status(403).json({ message: "Unauthorized role change to Admin" });
-    }
-
     // Update fields
     if (name) client.name = name;
     if (phone) client.phone = phone;
     if (email) client.email = email;
-    if (userType) client.userType = userType;
 
     if (req.file) {
-      client.profile_image = req.file.path; // Store the Cloudinary URL
+      client.profile_image = req.file.path.replace(/\\/g, "/"); // Store URL or normalized local path
     }
 
     await client.save();
@@ -166,6 +176,7 @@ export const updateProfile = async (req, res) => {
         email: client.email,
         unique_code: client.unique_code,
         userType: client.userType,
+        stayHostVerified: client.stayHostVerified,
         profile_image: client.profile_image,
       }
     });

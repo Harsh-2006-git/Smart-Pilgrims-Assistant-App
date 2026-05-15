@@ -5,7 +5,7 @@ export const createLostFound = async (req, res) => {
   try {
     const { title, description, status } = req.body;
     const { email, phone } = req.user; // from token
-    const image = req.file ? req.file.path : null;
+    const image = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
     const item = await LostFound.create({
       title,

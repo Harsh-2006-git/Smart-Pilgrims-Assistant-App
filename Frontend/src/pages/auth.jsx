@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   User,
   Phone,
   Mail,
   ArrowRight,
-  Sparkles,
-  Zap,
   Globe,
   Activity,
   ShieldCheck,
   XCircle,
-  LayoutDashboard,
   Calendar,
   Compass,
   CreditCard,
@@ -215,14 +212,13 @@ const Auth = ({ setIsAuthenticated }) => {
                                 className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all appearance-none cursor-pointer"
                              >
                                 <option value="Civilian">Civilian Devotee</option>
-                                <option value="Local">Local Resident</option>
                                 <option value="Aged">Senior Citizen (60+)</option>
-                                <option value="Child">Child (Under 12)</option>
                                 <option value="VIP">VIP Delegate</option>
                                 <option value="Divyang">Differently Abled (Divyang)</option>
                                 <option value="Sadhu">Sadhu / Saint</option>
                                 <option value="Admin">Administrator</option>
                                 <option value="ParkingOwner">Parking Owner</option>
+                                <option value="StayOwner">Stay Owner</option>
                              </select>
                              <Globe className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={14} />
                           </div>
@@ -241,12 +237,12 @@ const Auth = ({ setIsAuthenticated }) => {
                             </div>
                           )}
 
-                          {(formData.userType === "Aged" || formData.userType === "Child") && (
+                          {formData.userType === "Aged" && (
                             <div className="relative group animate-in slide-in-from-top-2 duration-300">
                               <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                               <input 
                                 type="number" 
-                                placeholder={formData.userType === "Aged" ? "Enter Age (Years)" : "Enter Child's Age"} 
+                                placeholder="Enter Age (Years)" 
                                 value={formData.age} 
                                 onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
                                 className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400" 
@@ -275,6 +271,13 @@ const Auth = ({ setIsAuthenticated }) => {
                                </p>
                             </div>
                           )}
+
+                          <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                             <MapPin size={18} className="text-orange-500 mt-1 flex-shrink-0" />
+                             <p className="text-[11px] font-bold text-orange-700 leading-tight">
+                               Accommodation hosting is granted separately by admin verification. Register as your normal pilgrim category first.
+                             </p>
+                          </div>
                         </div>
 
                         <button
@@ -294,7 +297,7 @@ const Auth = ({ setIsAuthenticated }) => {
                                setMessage("Please provide your Government Divyang Card ID.");
                                return;
                             }
-                            if((formData.userType === "Aged" || formData.userType === "Child") && !formData.age) {
+                            if(formData.userType === "Aged" && !formData.age) {
                                setMessage("Age verification is required for this category.");
                                return;
                             }
@@ -313,7 +316,7 @@ const Auth = ({ setIsAuthenticated }) => {
                                 setIsAuthenticated(true);
                                 navigate("/");
                               } else { setMessage(data.message); }
-                            } catch (err) { setMessage("Registration failed. Try again."); }
+                            } catch { setMessage("Registration failed. Try again."); }
                             finally { setIsLoading(false); }
                           }}
                           className="w-full h-14 bg-slate-900 hover:bg-orange-600 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl mt-4"

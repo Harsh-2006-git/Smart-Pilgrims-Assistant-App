@@ -14,8 +14,13 @@ const Client = sequelize.define(
     phone: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: true, unique: true },
     userType: {
-      type: DataTypes.ENUM("Civilian", "VIP", "Sadhu", "Admin", "Aged", "ParkingOwner", "Divyang"),
-      defaultValue: "Civilian",
+      type: DataTypes.ENUM("Civilian", "VIP", "Sadhu", "Admin", "Aged", "ParkingOwner", "Divyang", "StayOwner", "Pilgrim"),
+      defaultValue: "Pilgrim",
+    },
+    stayHostVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     password: { type: DataTypes.STRING, allowNull: true },
     profile_image: { type: DataTypes.STRING, allowNull: true },
