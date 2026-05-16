@@ -29,12 +29,15 @@ const Auth = ({ setIsAuthenticated }) => {
     name: "",
     phone: "",
     email: "",
+    password: "",
     userType: "Civilian",
     age: "",
     adminSecret: "",
     divyangCardId: "",
   });
   const [message, setMessage] = useState("");
+  const [formErrors, setFormErrors] = useState({});
+  const [countryCode, setCountryCode] = useState("+91");
   const [isLoading, setIsLoading] = useState(false);
   const slides = [
     "https://cdn.pixabay.com/photo/2016/08/21/19/49/temple-1610625_1280.jpg",
@@ -145,10 +148,10 @@ const Auth = ({ setIsAuthenticated }) => {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-2xl lg:text-4xl font-black text-slate-900 tracking-tight leading-none">
-                      {step === "initial" ? "Welcome Back" : "Complete Profile"}
+                      {step === "initial" ? "Welcome Back" : step === "phone_login" ? "Mobile Login" : "Complete Profile"}
                     </h2>
                     <p className="text-slate-400 text-sm font-medium">
-                      {step === "initial" ? "Sign in to your spiritual workspace" : "Provide details for your sacred pass"}
+                      {step === "initial" ? "Sign in to your spiritual workspace" : step === "phone_login" ? "Enter your registered mobile number and password" : "Provide details for your sacred pass"}
                     </p>
                   </div>
                 </div>
@@ -184,27 +187,139 @@ const Auth = ({ setIsAuthenticated }) => {
                                 width="250px"
                               />
                             </div>
+                            <div className="relative w-full flex items-center justify-center my-4">
+                               <div className="absolute inset-0 flex items-center">
+                                  <div className="w-full border-t border-slate-200"></div>
+                               </div>
+                               <div className="relative px-4 bg-slate-50/80 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                  Or
+                               </div>
+                            </div>
+                            <button
+                               onClick={() => setStep("phone_login")}
+                               className="w-full h-12 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-xl font-bold text-[14px] transition-all flex items-center justify-center gap-2 shadow-sm"
+                            >
+                               <Phone size={18} className="text-orange-500" /> Continue with Mobile Number
+                            </button>
                          </div>
                       </div>
+                   ) : step === "phone_login" ? (
+                     <form className="space-y-4 text-left animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="space-y-3">
+                          <div className={`flex w-full bg-white border ${formErrors.phone ? 'border-red-400 focus-within:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus-within:border-orange-400 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 overflow-hidden transition-all group`}>
+                             <div className="flex items-center pl-4 pr-2 bg-slate-50 border-r border-slate-200">
+                                <select
+                                  value={countryCode}
+                                  onChange={(e) => setCountryCode(e.target.value)}
+                                  className="bg-transparent text-slate-700 font-bold outline-none text-sm appearance-none cursor-pointer pr-1"
+                                >
+                                  <option value="+91">+91 (IN)</option>
+                                  <option value="+1">+1 (US)</option>
+                                  <option value="+44">+44 (UK)</option>
+                                </select>
+                             </div>
+                             <input
+                               type="tel"
+                               placeholder="Mobile Number"
+                               value={formData.phone}
+                               maxLength={10}
+                               onChange={(e) => {
+                                 setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) });
+                                 setFormErrors({ ...formErrors, phone: null });
+                               }}
+                               className="flex-1 bg-transparent px-4 text-slate-800 font-bold outline-none placeholder:text-slate-400"
+                             />
+                          </div>
+                          <div className="relative group">
+                             <ShieldCheck className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
+                             <input type="password" placeholder="Password" value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setFormErrors({ ...formErrors, password: null }); }} className={`w-full bg-white border ${formErrors.password ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            if(formData.phone.length !== 10 || !formData.password) {
+                               let errs = {};
+                               if (formData.phone.length !== 10) errs.phone = true;
+                               if (!formData.password) errs.password = true;
+                               setFormErrors(errs);
+                               setMessage("Please enter a valid 10-digit phone number and password.");
+                               return;
+                            }
+                            setIsLoading(true);
+                            setMessage("");
+                            try {
+                              const response = await fetch(`${API_V1}/auth/login`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ phone: formData.phone, password: formData.password }),
+                              });
+                              const data = await response.json();
+                              if (response.ok) {
+                                localStorage.setItem("user", JSON.stringify(data.user));
+                                localStorage.setItem("token", data.token);
+                                setIsAuthenticated(true);
+                                navigate("/");
+                              } else { setMessage(data.message); }
+                            } catch (err) { setMessage("Login failed. Try again."); }
+                            finally { setIsLoading(false); }
+                          }}
+                          className="w-full h-14 bg-slate-900 hover:bg-orange-600 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl mt-4"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>Login <ArrowRight size={18} /></>}
+                        </button>
+                        
+                        <div className="text-center pt-2">
+                           <span className="text-xs text-slate-500">New pilgrim? </span>
+                           <button type="button" onClick={() => { setFormData({...formData, phone: "", password: ""}); setStep("registering"); }} className="text-xs font-bold text-orange-600 hover:text-orange-700 uppercase tracking-wide">Register Here</button>
+                        </div>
+                        <button type="button" onClick={() => setStep("initial")} className="w-full text-center text-slate-400 font-bold text-[10px] uppercase tracking-widest pt-4 hover:text-slate-900 transition-colors">Back to Options</button>
+                     </form>
                    ) : (
                      <form className="space-y-4 text-left animate-in fade-in slide-in-from-right-8 duration-500">
                         <div className="space-y-3">
                           <div className="relative group">
-                             <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
-                             <input type="text" placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400" />
+                             <User className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.name ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
+                             <input type="text" placeholder="Full Name" value={formData.name} onChange={(e) => { setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\s]/g, "") }); setFormErrors({ ...formErrors, name: null }); }} className={`w-full bg-white border ${formErrors.name ? 'border-red-400 focus:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus:border-orange-400 focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} />
                           </div>
                           <div className="relative group">
-                             <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                             <input type="email" placeholder="Email Address" value={formData.email} readOnly className="w-full bg-slate-50 border border-slate-100 rounded-2xl h-14 pl-14 pr-6 text-slate-500 font-medium outline-none cursor-not-allowed" />
+                             <Mail className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.email ? 'text-red-400' : 'text-slate-300'} transition-colors`} size={18} />
+                             <input type="email" placeholder="Email Address (Optional)" value={formData.email} onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setFormErrors({ ...formErrors, email: null }); }} className={`w-full bg-white border ${formErrors.email ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} />
                           </div>
-                          <div className="relative group">
-                             <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                          <div className={`flex w-full bg-white border ${formErrors.phone ? 'border-red-400 focus-within:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus-within:border-orange-400 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 overflow-hidden transition-all group`}>
+                             <div className="flex items-center pl-4 pr-2 bg-slate-50 border-r border-slate-200">
+                                <select
+                                  value={countryCode}
+                                  onChange={(e) => setCountryCode(e.target.value)}
+                                  className="bg-transparent text-slate-700 font-bold outline-none text-sm appearance-none cursor-pointer pr-1"
+                                >
+                                  <option value="+91">+91 (IN)</option>
+                                  <option value="+1">+1 (US)</option>
+                                  <option value="+44">+44 (UK)</option>
+                                </select>
+                             </div>
                              <input
                                type="tel"
                                placeholder="Mobile Contact"
                                value={formData.phone}
-                               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                               className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all focus:shadow-[0_0_15px_rgba(249,115,22,0.1)] placeholder:text-slate-400"
+                               maxLength={10}
+                               onChange={(e) => {
+                                 setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) });
+                                 setFormErrors({ ...formErrors, phone: null });
+                               }}
+                               className="flex-1 bg-transparent px-4 text-slate-800 font-bold outline-none placeholder:text-slate-400"
+                             />
+                          </div>
+                          <div className="relative group">
+                             <ShieldCheck className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
+                             <input
+                               type="password"
+                               placeholder="Create Password"
+                               value={formData.password}
+                               onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setFormErrors({ ...formErrors, password: null }); }}
+                               className={`w-full bg-white border ${formErrors.password ? 'border-red-400 focus:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus:border-orange-400 focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`}
                              />
                           </div>
                            <div className="relative group">
@@ -256,13 +371,13 @@ const Auth = ({ setIsAuthenticated }) => {
 
                           {formData.userType === "Divyang" && (
                             <div className="relative group animate-in slide-in-from-top-2 duration-300">
-                              <CreditCard className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                              <CreditCard className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.divyangCardId ? 'text-red-400' : 'text-slate-400'} transition-colors`} size={18} />
                               <input 
                                 type="text" 
                                 placeholder="Government Divyang Card ID" 
                                 value={formData.divyangCardId} 
-                                onChange={(e) => setFormData({ ...formData, divyangCardId: e.target.value })} 
-                                className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400" 
+                                onChange={(e) => { setFormData({ ...formData, divyangCardId: e.target.value }); setFormErrors({ ...formErrors, divyangCardId: null }); }} 
+                                className={`w-full bg-white border ${formErrors.divyangCardId ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} 
                               />
                             </div>
                           )}
@@ -280,22 +395,20 @@ const Auth = ({ setIsAuthenticated }) => {
                         <button
                           onClick={async (e) => {
                             e.preventDefault();
-                            if(!formData.name || !formData.phone) {
-                               setMessage("Please fill out all required fields.");
-                               return;
-                            }
+                            
+                            let errs = {};
+                            if (!formData.name.trim()) errs.name = true;
+                            if (formData.phone.length !== 10) errs.phone = true;
+                            if (!formData.password || formData.password.length < 6) errs.password = true;
+                            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = true;
 
-                            // Role specific validation
-                            if(formData.userType === "Admin" && !formData.adminSecret) {
-                               setMessage("Admin Secret Code is required for this role.");
-                               return;
-                            }
-                            if(formData.userType === "Divyang" && !formData.divyangCardId) {
-                               setMessage("Please provide your Government Divyang Card ID.");
-                               return;
-                            }
-                            if((formData.userType === "Aged" || formData.userType === "Child") && !formData.age) {
-                               setMessage("Age verification is required for this category.");
+                            if(formData.userType === "Admin" && !formData.adminSecret) errs.adminSecret = true;
+                            if(formData.userType === "Divyang" && !formData.divyangCardId) errs.divyangCardId = true;
+                            if((formData.userType === "Aged" || formData.userType === "Child") && !formData.age) errs.age = true;
+
+                            if (Object.keys(errs).length > 0) {
+                               setFormErrors(errs);
+                               setMessage("Please correct the highlighted fields.");
                                return;
                             }
 
@@ -304,7 +417,7 @@ const Auth = ({ setIsAuthenticated }) => {
                               const response = await fetch(`${API_V1}/auth/register`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ ...formData, password: 'google_auth_placeholder' }),
+                                body: JSON.stringify({ ...formData, password: formData.password }),
                               });
                               const data = await response.json();
                               if (response.ok) {
