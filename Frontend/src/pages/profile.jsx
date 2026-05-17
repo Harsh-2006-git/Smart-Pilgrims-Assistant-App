@@ -302,6 +302,11 @@ const ProfileRfidPage = () => {
       return;
     }
 
+    if (editForm.phone.length !== 10) {
+      setError("Please enter a valid mobile number.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const formData = new FormData();
@@ -468,9 +473,10 @@ const ProfileRfidPage = () => {
                       <div className="relative">
                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                         <input
-                          type="text"
+                          type="tel"
+                          maxLength={10}
                           value={editForm.phone}
-                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                           className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 pl-11 pr-4 focus:border-orange-500 outline-none"
                         />
                       </div>
