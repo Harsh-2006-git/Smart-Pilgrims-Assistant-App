@@ -56,7 +56,7 @@ const Footer = () => {
                                 <a key={idx} href="#" className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white/[0.03] flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all duration-500 border border-white/5 hover:border-orange-500 shadow-lg relative group">
                                     <Icon size={18} className="relative z-10" />
                                     <div className="absolute inset-0 bg-orange-500 blur-xl opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -78,8 +78,13 @@ const Footer = () => {
                                 <li key={link.labelKey}>
                                     <button
                                         onClick={() => {
-                                            if (link.external) window.location.href = link.path;
-                                            else navigate(link.path);
+                                            if (!link.path) return;
+
+                                            if (link.external) {
+                                                window.location.href = link.path;
+                                            } else {
+                                                navigate(link.path);
+                                            }
                                         }}
                                         className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-0 hover:gap-3 group"
                                     >
