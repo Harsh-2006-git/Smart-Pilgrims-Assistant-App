@@ -53,14 +53,15 @@ const Footer = () => {
 
                         <div className="hidden md:flex gap-3 md:gap-4">
                             {[Facebook, Twitter, Instagram, Youtube].map((Icon, idx) => (
-                                <a
+                                <button
                                     key={idx}
-                                    href="#"
-                                    className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white/[0.03] flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all duration-500 border border-white/5 hover:border-orange-500 shadow-lg relative group"
+                                    type="button"
+                                    className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white/[0.03] flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all duration-500 border border-white/5 hover:border-orange-500 shadow-lg relative group cursor-default"
+                                    aria-label="Social media link coming soon"
                                 >
                                     <Icon size={18} className="relative z-10" />
                                     <div className="absolute inset-0 bg-orange-500 blur-xl opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -74,16 +75,21 @@ const Footer = () => {
                             {[
                                 { label: "Live Darshan", path: "/live-darshan" },
                                 { label: "Ticket Booking", path: "/ticket" },
-                                { label: "Zone Status", path: "/dencity" },
+                                { label: "Zone Status", path: "/density" },
                                 { label: "Lost & Found", path: "/lostFound" },
                                 { label: "Interactive Map", path: "/map.html", external: true },
-                                { label: "City Guide", path: "#about" }
+                                { label: "City Guide", path: null }
                             ].map((link) => (
                                 <li key={link.label}>
                                     <button
                                         onClick={() => {
-                                            if (link.external) window.location.href = link.path;
-                                            else navigate(link.path);
+                                            if (!link.path) return;
+
+                                            if (link.external) {
+                                                window.location.href = link.path;
+                                            } else {
+                                                navigate(link.path);
+                                            }
                                         }}
                                         className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-0 hover:gap-3 group"
                                     >
