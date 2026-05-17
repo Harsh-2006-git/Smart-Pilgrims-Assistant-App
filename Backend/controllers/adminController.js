@@ -144,6 +144,21 @@ export const handleSOS = async (req, res, next) => {
 
         if (!lat || !lng) return res.status(400).json({ message: "Location coordinates required" });
 
+        // DUPLICATE PREVENTION: Reject if the same user already has an SOS alert
+        // created within the cooldown window (covers rapid clicks & concurrent requests)
+        const cooldownCutoff = new Date(Date.now() - SOS_COOLDOWN_SECONDS * 1000);
+        const recentAlert = await SOSAlert.findOne({
+            where: {
+                client_id: user.client_id,
+                created_at: { [Op.gte]: cooldownCutoff }
+            }
+        });
+        if (recentAlert) {
+            return res.status(429).json({
+                message: `SOS already dispatched. Please wait ${SOS_COOLDOWN_SECONDS} seconds before sending another alert.`
+            });
+        }
+
         // PERSIST IN DB FOR DASHBOARD
         await SOSAlert.create({
             client_id: user.client_id,

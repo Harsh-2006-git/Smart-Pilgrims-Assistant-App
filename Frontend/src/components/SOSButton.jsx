@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Shield, X, AlertTriangle, ChevronRight, PhoneCall } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,8 @@ const SOSButton = () => {
     const [status, setStatus] = useState('idle'); // idle, sending, success, error
     const [error, setError] = useState(null);
     const [cachedLocation, setCachedLocation] = useState(null);
+    // Guard against concurrent SOS submissions (rapid clicks before React re-renders)
+    const isSending = useRef(false);
 
     const preFetchLocation = () => {
         if (navigator.geolocation) {
@@ -25,6 +27,10 @@ const SOSButton = () => {
     };
 
     const handleSOS = async () => {
+        // Prevent concurrent submissions: if a request is already in-flight, do nothing
+        if (isSending.current) return;
+        isSending.current = true;
+
         setStatus('sending');
         setError(null);
 
@@ -43,6 +49,7 @@ const SOSButton = () => {
             } catch (err) {
                 setError(err.message);
                 setStatus('error');
+                isSending.current = false;
             }
         };
 
@@ -52,6 +59,7 @@ const SOSButton = () => {
             if (!navigator.geolocation) {
                 setError(t("sos.geolocationMissing"));
                 setStatus('error');
+                isSending.current = false;
                 return;
             }
             navigator.geolocation.getCurrentPosition(
@@ -103,7 +111,8 @@ const SOSButton = () => {
                                     </div>
                                     <button
                                         onClick={handleSOS}
-                                        className="w-full py-5 bg-red-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-red-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                                        disabled={status === 'sending'}
+                                        className="w-full py-5 bg-red-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-red-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                                     >
                                         {t("sos.confirmEmergency")} <ChevronRight size={18} />
                                     </button>

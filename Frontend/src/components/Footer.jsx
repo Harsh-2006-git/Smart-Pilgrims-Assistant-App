@@ -78,8 +78,13 @@ const Footer = () => {
                                 <li key={link.labelKey}>
                                     <button
                                         onClick={() => {
-                                            if (link.external) window.location.href = link.path;
-                                            else navigate(link.path);
+                                            if (!link.path) return;
+
+                                            if (link.external) {
+                                                window.location.href = link.path;
+                                            } else {
+                                                navigate(link.path);
+                                            }
                                         }}
                                         className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-0 hover:gap-3 group"
                                     >
