@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Shield, X, AlertTriangle, ChevronRight, PhoneCall } from 'lucide-react';
 import { API_V1 } from '../config/api';
@@ -9,6 +9,8 @@ const SOSButton = () => {
     const [status, setStatus] = useState('idle'); // idle, sending, success, error
     const [error, setError] = useState(null);
     const [cachedLocation, setCachedLocation] = useState(null);
+    // Guard against concurrent SOS submissions (rapid clicks before React re-renders)
+    const isSending = useRef(false);
 
     // Pre-fetch location the moment the modal opens to save time
     const preFetchLocation = () => {
@@ -27,6 +29,10 @@ const SOSButton = () => {
     };
 
     const handleSOS = async () => {
+        // Prevent concurrent submissions: if a request is already in-flight, do nothing
+        if (isSending.current) return;
+        isSending.current = true;
+
         setStatus('sending');
         setError(null);
 
@@ -47,12 +53,14 @@ const SOSButton = () => {
                     setTimeout(() => {
                         setIsOpen(false);
                         setStatus('idle');
+                        isSending.current = false;
                         navigate('/admin?tab=sos');
                     }, 1000);
                 } else throw new Error("Emergency link failed");
             } catch (err) {
                 setError(err.message);
                 setStatus('error');
+                isSending.current = false;
             }
         };
 
@@ -63,11 +71,12 @@ const SOSButton = () => {
             if (!navigator.geolocation) {
                 setError("Geolocation missing");
                 setStatus('error');
+                isSending.current = false;
                 return;
             }
             navigator.geolocation.getCurrentPosition(
                 async (p) => await triggerBackend(p.coords.latitude, p.coords.longitude),
-                (e) => { setError("GPS Signal Required"); setStatus('error'); },
+                (e) => { setError("GPS Signal Required"); setStatus('error'); isSending.current = false; },
                 { enableHighAccuracy: true, timeout: 5000 }
             );
         }
@@ -93,8 +102,9 @@ const SOSButton = () => {
                         <div className="bg-red-600 p-8 text-white text-center relative">
                             <div className="absolute top-4 right-4 group">
                                 <button 
-                                    onClick={() => setIsOpen(false)}
-                                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                    onClick={() => status !== 'sending' && setIsOpen(false)}
+                                    disabled={status === 'sending'}
+                                    className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     <X size={20} />
                                 </button>
@@ -118,7 +128,8 @@ const SOSButton = () => {
                                     </div>
                                     <button 
                                         onClick={handleSOS}
-                                        className="w-full py-5 bg-red-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-red-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                                        disabled={status === 'sending'}
+                                        className="w-full py-5 bg-red-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-red-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                                     >
                                         CONFIRM EMERGENCY <ChevronRight size={18} />
                                     </button>
