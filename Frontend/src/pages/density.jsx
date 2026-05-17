@@ -510,6 +510,7 @@ const Dashboard = () => {
                     </span>
                     <span className="text-xs font-bold text-green-700 uppercase tracking-wide">Live Data</span>
                   </div>
+              </div>
                 <div className="">
                   <div className="relative">
                     <img
