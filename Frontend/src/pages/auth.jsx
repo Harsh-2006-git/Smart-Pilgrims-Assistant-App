@@ -93,44 +93,76 @@ const Auth = ({ setIsAuthenticated }) => {
   ];
 
   return (
-    <div className="relative h-[100dvh] w-full flex items-center justify-center bg-slate-50 font-['Outfit'] select-none overflow-hidden p-3 md:p-4">
+    <div className="relative  
+    w-full 
+    min-h-screen
+     overflow-x-hidden
+       bg-gradient-to-br
+        from-orange-50
+        via-white 
+        to-blue-50 
+        font-['Outfit'] 
+        select-none 
+         px-3
+         py-3
+        sm:px-5
+         sm:py-6 
+         lg:px-8 
+         lg:py-8
+         ">
       {/* Decorative Orbs */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] -mr-48 -mt-48 transition-all duration-1000 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-100/30 rounded-full blur-[100px] -ml-32 -mb-32 transition-all duration-1000 pointer-events-none"></div>
+      <div className=" absolute top-0 right-0 z-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] -mr-48 -mt-48 transition-all duration-1000 pointer-events-none"></div>
+      <div className=" absolute bottom-0 left-0 z-0 w-[400px] h-[400px] bg-orange-100/30 rounded-full blur-[100px] -ml-32 -mb-32 transition-all duration-1000 pointer-events-none"></div>
 
-      <div className="w-full max-w-7xl h-full flex flex-col lg:flex-row gap-4 md:gap-12 lg:gap-24 relative z-10 p-2 md:p-6 items-center justify-center">
+      <div className="w-full max-w-7xl mx-auto flex flex-col xl:flex-row items-center justify-center gap-6 xl:gap-12 relative z-10">
         
         {/* Left Section: Branding & Features */}
-        <div className="w-full lg:w-3/5 space-y-4 md:space-y-10 animate-in fade-in slide-in-from-left-8 duration-700">
-          <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-            <div className="w-12 h-12 md:w-24 md:h-24 flex items-center justify-center">
+        <div className="w-full lg:xl-w-[46%] relative z-10 max-w-xl mx-auto  space-y-1 sm:space-y-2 md:space-y-1 animate-in fade-in slide-in-from-left-8 duration-700">
+          <div className="w-full flex items-center justify-center lg:justify-start gap-3 md:gap-4">
+            <div className="w-8 h-8 sm:h-10 sm:w-10 sm:h-10 md:w-16 md:h-16 flex items-center justify-center">
                <img src={logo} alt="Divya Yatra Application Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-               <h3 className="text-xl md:text-3xl font-black text-slate-800 tracking-tight leading-none uppercase">DIVYA YATRA</h3>
-               <span className="text-[8px] md:text-xs font-bold text-orange-600 uppercase tracking-widest">Pilgrim Navigator</span>
+               <h3 className="text-[11px] sm:text-lg md:text-3xl font-black text-slate-800 tracking-tight leading-none uppercase">DIVYA YATRA</h3>
+               <span className="text-[7px] sm:text-[9px] md:text-xs font-bold text-orange-600 uppercase tracking-widest">Pilgrim Navigator</span>
             </div>
           </div>
 
-          <div className="space-y-2 md:space-y-6 text-center lg:text-left">
-            <h1 className="text-3xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-[0.95]">
-              Step into the <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-rose-500 to-orange-500">Divine Journey</span>
+          <div className="space-y-2 sm:space-y-4 text-center lg:text-left px-0 flex flex-col items-center lg:items-start">
+            <h1 className=" 
+              w-full text-center lg:text-left 
+              text-[0.95rem]  
+              sm:text-3xl 
+              lg:text-6xl
+               xl:text-7xl 
+               font-black text-slate-900
+                tracking-tight leading-[1]
+              ">
+               <span className="block leading-none"> Step into the </span>
+              <span className="
+              block leading-none
+               mt-[-2px]
+              text-transparent 
+              bg-clip-text 
+              bg-gradient-to-br 
+              from-orange-500 via-rose-500 to-orange-500">Divine Journey
+
+              </span>
             </h1>
-            <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-xs md:text-lg font-medium leading-relaxed">
+            <p className="max-w-md mx-auto lg:mx-0 text-slate-600 text-xs sm:text-sm md:text-[16px] font-medium leading-relaxed">
               A unified portal for Pilgrims, Trust, and Administration.
             </p>
           </div>
 
-          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
             {featureCards.map((feature, idx) => (
-              <div key={idx} className="flex gap-4 p-5 rounded-3xl bg-white border border-slate-100 backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 group">
-                <div className={`p-3 h-fit rounded-[1.25rem] ${feature.bg} ${feature.color} group-hover:scale-110 transition-transform`}>
+              <div key={idx} className="flex gap-4 p-3 sm:p-5 rounded-3xl min-h-[140px] bg-white/90 border backdrop-blur-md border-slate-100 shadow-sm transition-all duration-300   hover:shadow-md hover:-translate-y-1 hover:scale-[1.02]">
+                <div className={`p-3 h-fit rounded-xl ${feature.bg} ${feature.color} group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
                 <div className="space-y-1">
                   <h4 className="font-bold text-slate-800 leading-none text-sm">{feature.title}</h4>
-                  <p className="text-[11px] text-slate-400 font-medium leading-snug">{feature.desc}</p>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">{feature.desc}</p>
                 </div>
               </div>
             ))}
@@ -138,45 +170,46 @@ const Auth = ({ setIsAuthenticated }) => {
         </div>
 
         {/* Right Section: Sign In Card */}
-        <div className="w-full lg:w-2/5 animate-in fade-in slide-in-from-right-8 duration-700 max-w-lg mx-auto flex flex-col justify-center">
-           <div className="bg-white rounded-2xl md:rounded-[3.5rem] p-4 md:p-10 lg:p-14 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.08)] text-center border border-slate-100 flex flex-col justify-center min-h-0 md:min-h-[600px] relative overflow-hidden">
+        <div className="w-full max-w-[420px] mx-auto xl:mx-0 flex flex-col  animate-in fade-in slide-in-from-right-8 duration-700">
+           <div className="bg-white/60 backdrop-blur-xl w-full rounded-2xl  md:rounded-[2rem] p-2 sm:p-4 lg:p-6 shadow-[0_10px_40px_rgba(15,23,42,0.08)] text-center border border-white/40">
               
               <div className="relative z-10">
-                <div className="space-y-6 flex flex-col items-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50/50 border border-orange-100/50 text-[10px] font-black tracking-widest text-orange-600 uppercase shadow-sm">
+                <div className="space-y-2 flex flex-col items-center w-full">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50/50 border border-orange-100/50 text-xs font-black tracking-widest text-orange-600 uppercase shadow-sm">
                      <Globe size={12} /> DIVINE ACCESS
                   </div>
-                  <div className="space-y-2">
-                    <h2 className="text-2xl lg:text-4xl font-black text-slate-900 tracking-tight leading-none">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl sm:text-2xl lg:text-[1.8rem] font-black text-slate-900 tracking-tight leading-tight">
                       {step === "initial" ? "Welcome Back" : step === "phone_login" ? "Mobile Login" : "Complete Profile"}
                     </h2>
-                    <p className="text-slate-400 text-sm font-medium">
+                    <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed px-2">
                       {step === "initial" ? "Sign in to your spiritual workspace" : step === "phone_login" ? "Enter your registered mobile number and password" : "Provide details for your sacred pass"}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 md:mt-10">
+                <div className="mt-2">
                     {step === "initial" ? (
-                      <div className="space-y-4 md:space-y-8 flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
-                         <div className="w-full p-6 md:p-8 rounded-[2rem] bg-slate-50/80 border border-slate-100 flex flex-col items-center justify-center space-y-4 md:space-y-6 shadow-inner">
-                            <div className="hidden md:block relative -mt-16 mb-6">
-                               <div className="relative w-22 h-22 bg-white rounded-[2.75rem] shadow-[0_24px_70px_-15px_rgba(15,23,42,0.12)] border border-slate-100 flex items-center justify-center overflow-hidden">
+                      <div className="space-y-3 md:space-y-4 flex flex-col items-center w-full animate-in fade-in zoom-in-95 duration-500">
+                         <div className="w-full p-2 sm:p-4 md:p-5 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center space-y-2   shadow-inner">
+                            <div className="hidden md:flex relative -mt-8 mb- justify-center">
+                               <div className="relative w-16 h-16 bg-white rounded-[2.5rem] shadow-[0_24px_70px_-15px_rgba(15,23,42,0.12)] border border-slate-100 flex items-center justify-center overflow-hidden">
                                   {/* Internal glass structural layers */}
-                                  <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-slate-200/20 to-transparent"></div>
+                                  <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-br from-slate-200/20 to-transparent"></div>
                                   
-                                  <div className="w-15 h-15 rounded-[1.75rem] bg-slate-50 border border-slate-200/60 flex items-center justify-center p-2.5 shadow-inner">
-                                     <div className="w-11 h-11 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
-                                        <User className="text-slate-900" size={22} />
+                                  <div className="w-12 h-10 sm:h-12 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center p-2.5 shadow-inner">
+                                     <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center shadow-sm">
+                                        <User className="text-slate-900" size={18} />
                                      </div>
                                   </div>
                                </div>
                             </div>
-                            <div className="hidden md:block text-center space-y-1">
-                               <span className="text-slate-800 font-bold block text-lg">One-Tap Authentication</span>
-                               <span className="text-slate-400 text-xs font-medium">Continue securely with your Google account</span>
+                            <div className="hidden md:flex flex-col items-center text-center space-y-1 px-2 mb-1">
+                               <span className="text-slate-800 font-bold block text-base lg:text-lg tracking-tight">One-Tap Authentication</span>
+                               <span className="text-slate-500 text-xs font-medium">Continue securely with your Google account</span>
                             </div>
-                            <div className="w-full transform transition-all hover:scale-[1.02] flex justify-center py-2">
+                            <div className="w-full transition-all duration-300 hover:scale-[1.01] flex justify-center py-0">
+                              <div className="max-w-[320px] mx-auto w-full overflow-hidden flex justify-center ">
                               <GoogleLogin
                                 onSuccess={handleGoogleSuccess}
                                 onError={() => setMessage("Connection Failed")}
@@ -184,34 +217,40 @@ const Auth = ({ setIsAuthenticated }) => {
                                 theme="outline"
                                 shape="pill"
                                 size="large"
-                                width="250px"
+                                width="260"
                               />
+                              </div>
                             </div>
-                            <div className="relative w-full flex items-center justify-center my-4">
+                            <div className="relative  w-full flex items-center justify-center my-1 md:my-2">
                                <div className="absolute inset-0 flex items-center">
                                   <div className="w-full border-t border-slate-200"></div>
                                </div>
-                               <div className="relative px-4 bg-slate-50/80 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                               <div className="relative px-3 md:px-4 bg-slate-50/80 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-[0.2em] rounded-full">
                                   Or
                                </div>
                             </div>
                             <button
                                onClick={() => setStep("phone_login")}
-                               className="w-full h-12 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-xl font-bold text-[14px] transition-all flex items-center justify-center gap-2 shadow-sm"
+                               className="w-full max-w-[280px] mx-auto h-11 sm:h-12 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-2xl font-semibold text-sm md:text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md "
                             >
-                               <Phone size={18} className="text-orange-500" /> Continue with Mobile Number
+                               <Phone size={18} className="text-orange-500 flex-shrink-0" /> 
+                               <span>Continue with Mobile Number</span>
                             </button>
                          </div>
                       </div>
                    ) : step === "phone_login" ? (
-                     <form className="space-y-4 text-left animate-in fade-in slide-in-from-right-8 duration-500">
-                        <div className="space-y-3">
-                          <div className={`flex w-full bg-white border ${formErrors.phone ? 'border-red-400 focus-within:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus-within:border-orange-400 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 overflow-hidden transition-all group`}>
-                             <div className="flex items-center pl-4 pr-2 bg-slate-50 border-r border-slate-200">
+                     <form className="space-y-4 text-left w-full animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="space-y-4 w-full">
+                          <div className={`flex w-full bg-white border ${
+                            formErrors.phone
+                             ? 'border-red-400 focus-within:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' 
+                             : 'border-slate-200 focus-within:border-orange-400 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.1)]'
+                             } rounded-xl h-12  overflow-hidden transition-all duration-300 group`}>
+                             <div className="flex items-center pl-3 md:pl-4 pr-2 bg-slate-50 border-r border-slate-200 flex-shrink-0">
                                 <select
                                   value={countryCode}
                                   onChange={(e) => setCountryCode(e.target.value)}
-                                  className="bg-transparent text-slate-700 font-bold outline-none text-sm appearance-none cursor-pointer pr-1"
+                                  className="bg-transparent text-slate-700 font-semibold outline-none text-sm md:text-base appearance-none cursor-pointer pr-2 min-w-[85px]"
                                 >
                                   <option value="+91">+91 (IN)</option>
                                   <option value="+1">+1 (US)</option>
@@ -227,12 +266,16 @@ const Auth = ({ setIsAuthenticated }) => {
                                  setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) });
                                  setFormErrors({ ...formErrors, phone: null });
                                }}
-                               className="flex-1 bg-transparent px-4 text-slate-800 font-bold outline-none placeholder:text-slate-400"
+                               className="flex-1 min-w-0 bg-transparent px-3 md:px-4 text-slate-800 font-semibold  text-sm md:text-base outline-none placeholder:text-slate-400"
                              />
                           </div>
-                          <div className="relative group">
-                             <ShieldCheck className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
-                             <input type="password" placeholder="Password" value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setFormErrors({ ...formErrors, password: null }); }} className={`w-full bg-white border ${formErrors.password ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} />
+                          <div className="relative group w-full">
+                             <ShieldCheck className={`absolute left-4 md:left-5 top-1/2 -translate-y-1/2 ${formErrors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
+                             <input type="password" placeholder="Password" value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setFormErrors({ ...formErrors, password: null }); }} className={`w-full bg-white border ${
+                              formErrors.password 
+                              ? 'border-red-400 focus:border-red-500' 
+                              : 'border-slate-200 focus:border-orange-400'
+                              } rounded-xl h-12 pl-12 md:pl-14 pr-4 md:pr-6 text-slate-800 font-semibold text-sm md:text-base outline-none transition-all duration-300 placeholder:text-slate-400`} />
                           </div>
                         </div>
 
@@ -265,7 +308,7 @@ const Auth = ({ setIsAuthenticated }) => {
                             } catch (err) { setMessage("Login failed. Try again."); }
                             finally { setIsLoading(false); }
                           }}
-                          className="w-full h-14 bg-slate-900 hover:bg-orange-600 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl mt-4"
+                          className="w-full h-10 sm:h-12 bg-slate-900 hover:bg-orange-500 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl mt-4"
                           disabled={isLoading}
                         >
                           {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>Login <ArrowRight size={18} /></>}
@@ -309,17 +352,28 @@ const Auth = ({ setIsAuthenticated }) => {
                                  setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) });
                                  setFormErrors({ ...formErrors, phone: null });
                                }}
-                               className="flex-1 bg-transparent px-4 text-slate-800 font-bold outline-none placeholder:text-slate-400"
+                               className="flex-1 min-w-0 bg-transparent px-3 md:px-4 text-slate-800 font-medium text-sm md:text-base outline-none placeholder:text-slate-400"
                              />
                           </div>
-                          <div className="relative group">
-                             <ShieldCheck className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
+                          <div className="relative group w-full">
+                             <ShieldCheck
+                              className={`absolute left-4 md:left-5 top-1/2 -translate-y-1/2 ${
+                                formErrors.password 
+                                ? 'text-red-400'
+                                 : 'text-slate-400 group-focus-within:text-orange-500'
+                                 } transition-colors duration-300`} 
+                                 size={18}
+                                  />
                              <input
                                type="password"
                                placeholder="Create Password"
                                value={formData.password}
                                onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setFormErrors({ ...formErrors, password: null }); }}
-                               className={`w-full bg-white border ${formErrors.password ? 'border-red-400 focus:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus:border-orange-400 focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`}
+                               className={`w-full bg-white border ${
+                                formErrors.password 
+                                ? 'border-red-400 focus:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]'
+                                 : 'border-slate-200 focus:border-orange-400 focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]'
+                                } rounded-xl h-12 pl-12 md:pl-14  pr-4 md:pr-6 text-slate-800 font-medium text-sm md:text-base outline-none transition-all duration-300 placeholder:text-slate-400`}
                              />
                           </div>
                            <div className="relative group">
@@ -327,7 +381,7 @@ const Auth = ({ setIsAuthenticated }) => {
                              <select
                                 value={formData.userType}
                                 onChange={(e) => setFormData({...formData, userType: e.target.value})}
-                                className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all appearance-none cursor-pointer"
+                                className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-xl h-12 pl-14 pr-6 text-slate-800 font-medium outline-none transition-all appearance-none cursor-pointer"
                              >
                                 <option value="Civilian">Civilian Devotee</option>
                                 <option value="Local">Local Resident</option>
@@ -351,43 +405,62 @@ const Auth = ({ setIsAuthenticated }) => {
                                 placeholder="Admin Secret Verification Code" 
                                 value={formData.adminSecret} 
                                 onChange={(e) => setFormData({ ...formData, adminSecret: e.target.value })} 
-                                className="w-full bg-red-50/50 border border-red-100 focus:border-red-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-red-300" 
+                                className="w-full bg-red-50/30 border border-red-100 focus:border-red-400 rounded-2xl h-10 sm:h-12 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-red-300" 
                               />
                             </div>
                           )}
 
                           {(formData.userType === "Aged" || formData.userType === "Child") && (
                             <div className="relative group animate-in slide-in-from-top-2 duration-300">
-                              <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                               <input 
                                 type="number" 
                                 placeholder={formData.userType === "Aged" ? "Enter Age (Years)" : "Enter Child's Age"} 
                                 value={formData.age} 
                                 onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
-                                className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400" 
+                                className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-xl h-10 sm:h-12 pl-12 pr-4 text-slate-800 font-medium outline-none transition-all duration-300 placeholder:text-slate-400" 
                               />
                             </div>
                           )}
 
                           {formData.userType === "Divyang" && (
                             <div className="relative group animate-in slide-in-from-top-2 duration-300">
-                              <CreditCard className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.divyangCardId ? 'text-red-400' : 'text-slate-400'} transition-colors`} size={18} />
+                              <CreditCard className={`absolute left-4 top-1/2 -translate-y-1/2 ${formErrors.divyangCardId ? 'text-red-400' : 'text-slate-400'} transition-colors`} size={18} />
                               <input 
                                 type="text" 
                                 placeholder="Government Divyang Card ID" 
                                 value={formData.divyangCardId} 
                                 onChange={(e) => { setFormData({ ...formData, divyangCardId: e.target.value }); setFormErrors({ ...formErrors, divyangCardId: null }); }} 
-                                className={`w-full bg-white border ${formErrors.divyangCardId ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} 
+                                className={`w-full bg-white border ${formErrors.divyangCardId ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-orange-400'} rounded-xl h-10 sm:h-12 pl-12 pr-4 text-slate-800 font-medium outline-none transition-all duration-300 placeholder:text-slate-400`} 
                               />
                             </div>
                           )}
 
                           {formData.userType === "VIP" && (
-                            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
-                               <ShieldCheck size={18} className="text-purple-600 mt-1 flex-shrink-0" />
-                               <p className="text-[11px] font-bold text-purple-700 leading-tight">
+                            <div className="
+                             w-full  rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4  flex items-start gap-3 shadow-sm animate-in slide-in-from-top-2 duration-300
+                             ">
+                              <div className="flex items-center justify-center
+                               w-10 h-10 
+                               rounded-xl 
+                               bg-purple-100
+                                flex-shrink-0
+                              ">
+                               <ShieldCheck size={18} 
+                               className="text-purple-600"
+                                />
+                               </div>
+                               <div className="flex-1">
+                                <h4 className="
+                                text-sm
+                                sm:text-base
+                                font-semibold
+                                text-purple-800
+                                ">VIP Verification Required</h4>
+                               <p className=" mt-1 text-xs sm:text-sm leading-relaxed text-purple-700 font-medium  ">
                                  VIP registrations require manual verification by the Temple Board. Your access will be restricted until approved.
                                </p>
+                               </div>
                             </div>
                           )}
                         </div>
@@ -429,7 +502,7 @@ const Auth = ({ setIsAuthenticated }) => {
                             } catch (err) { setMessage("Registration failed. Try again."); }
                             finally { setIsLoading(false); }
                           }}
-                          className="w-full h-14 bg-slate-900 hover:bg-orange-600 text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl mt-4"
+                          className="w-full h-10 sm:h-12 bg-slate-900 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm md:text-base active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 shadow-md mt-3"
                           disabled={isLoading}
                         >
                           {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>Complete Profile <ArrowRight size={18} /></>}
@@ -440,18 +513,18 @@ const Auth = ({ setIsAuthenticated }) => {
                    )}
 
                    {message && (
-                     <div className="mt-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center gap-2 text-rose-600 text-[13px] font-bold animate-in bounce-in w-full">
+                     <div className="mt-5 p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center justify-center gap-2 text-rose-600 text-sm font-medium animate-in fade-in w-full">
                        <XCircle size={16} /> {message}
                      </div>
                    )}
                 </div>
               </div>
 
-              <div className="pt-4 md:pt-8 w-full relative z-10 mt-auto">
-                 <div className="w-full relative h-[70px] md:h-[110px] rounded-[1rem] overflow-hidden border border-slate-100 flex items-center bg-slate-50 shadow-inner group">
-                    <div className="flex animate-marquee hover:[animation-play-state:paused] w-max py-2">
+              <div className="hidden md:block pt-6 w-full relative z-10 ">
+                 <div className="w-full relative h-[72px] md:h-[100px] rounded-xl overflow-hidden border border-slate-100 flex items-center bg-slate-50 shadow-inner group">
+                    <div className="flex animate-marquee hover:[animation-play-state:paused] w-max py-1.5">
                       {[...slides, ...slides, ...slides, ...slides].map((imgUrl, index) => (
-                        <div key={index} className="w-[100px] md:w-[160px] h-[60px] md:h-[95px] flex-shrink-0 mx-[4px]">
+                        <div key={index} className="w-[90px] md:w-[160px] h-[55px] md:h-[85px] flex-shrink-0 mx-1">
                            <img src={imgUrl} alt={`Glimpse of a sacred temple site: ${index % slides.length + 1}`} className="w-full h-full object-cover rounded-lg border border-slate-200 shadow-sm" />
                         </div>
                       ))}
@@ -460,16 +533,16 @@ const Auth = ({ setIsAuthenticated }) => {
               </div>
 
               {/* Minimal Card Base Glow */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-[100px] bg-gradient-to-t from-orange-50/50 to-transparent pointer-events-none"></div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] sm:w-[80%] h-24 bg-gradient-to-t from-orange-100/40 via-orange-50/20 to-transparent blur-2xl pointer-events-none"></div>
 
               <style>
                 {`
                   @keyframes marquee {
                     0% { transform: translateX(0); }
-                    100% { transform: translateX(calc(-168px * 4)); }
+                    100% { transform: translateX(-50%); }
                   }
                   .animate-marquee {
-                    animation: marquee 20s linear infinite;
+                    animation: marquee 32s linear infinite;
                   }
                 `}
               </style>
@@ -482,4 +555,3 @@ const Auth = ({ setIsAuthenticated }) => {
 };
 
 export default Auth;
-;

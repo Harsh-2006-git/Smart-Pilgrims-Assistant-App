@@ -209,33 +209,41 @@ const AdminPage = () => {
             <Header />
 
             {/* Mobile Sidebar Toggle */}
-            <div className="lg:hidden fixed bottom-6 right-6 z-[60] flex items-center gap-2">
+            <div className="lg:hidden fixed bottom-6 right-6 z-[60] ">
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="w-14 h-14 bg-slate-900 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                    className="w-14 h-14 bg-slate-900 text-white rounded-2xl shadow-xl flex items-center justify-center transition-all hover:scale-105 "
+
                 >
                     {isSidebarOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
                 </button>
             </div>
 
-            <div className={`flex-1 flex flex-col lg:flex-row transition-all duration-500 max-w-[1800px] mx-auto w-full group ${alerts.length > 0 ? 'pt-32 md:pt-40' : 'pt-20 md:pt-24'}`}>
+            <div className={`flex flex-1 w-full   ${
+                alerts.length>0?"pt-32 md:pt-40":"pt-20 md:pt-24" }`}
+                >
 
                 {/* Sidebar Navigation */}
                 <aside className={`
-                    fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 p-6 transition-transform duration-300 lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] lg:translate-x-0
-                    ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+                    fixed inset-y-0 left-0 z-50
+                     w-[85vw] max-w-[280px]
+                       bg-white border-r border-slate-200 shadow-lg p-6 
+                       transition-transform duration-300 
+                       lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] 
+                       lg:w-72 lg:translate-x-0 lg:shadow-none
+                    ${isSidebarOpen ? 'translate-x-0 ' : '-translate-x-full'} lg:translate-x-0
                 `}>
                     <div className="flex flex-col h-full">
-                        <div className="mb-8 hidden lg:block">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="bg-slate-900 text-white p-1.5 rounded-lg">
-                                    <ShieldCheck size={20} />
+                        <div className="mb-8 ">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-slate-900 text-white p-2 rounded-lg">
+                                    <ShieldCheck size={18} />
                                 </div>
-                                <h1 className="text-xl font-black text-slate-900 tracking-tight italic">
+                                <h1 className="text-xl font-bold ">
                                     Master <span className="text-orange-600">Console</span>
                                 </h1>
                             </div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Admin Control Center</p>
+                            <p className="text-xs text-slate-400 uppercase tracking-wider">Admin Control Center</p>
                         </div>
 
                         <nav className="flex-1 space-y-1.5 overflow-y-auto custom-scrollbar pr-2">
@@ -263,8 +271,8 @@ const AdminPage = () => {
                 </aside>
 
                 {/* Main Content Area */}
-                <main className="flex-1 p-2 md:p-6 lg:p-8 min-w-0 w-full overflow-hidden">
-                    <div className="max-w-[1400px] mx-auto w-full">
+                <main className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 w-full overflow-hidden">
+                    <div className=" max-w-[1600px] w-full">
 
                         {/* Mobile Header Bar */}
                         <div className="lg:hidden flex items-center justify-between mb-6 pb-2 border-b border-slate-100">
@@ -281,10 +289,10 @@ const AdminPage = () => {
                         </div>
 
                         {/* Top Bar for Desktop */}
-                        <div className="hidden lg:flex justify-between items-center mb-10">
+                        <div className="hidden lg:flex justify-between items-centergap-4 flex-wrap mb-10">
                             <div>
                                 <h2 className="text-xs font-black text-orange-600 uppercase tracking-[0.3em] mb-1">Ujjain Smart Management</h2>
-                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                                <h3 className="text-2xl xl:text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">
                                     {tabs.find(t => t.id === activeTab)?.label}
                                 </h3>
                             </div>
@@ -304,18 +312,18 @@ const AdminPage = () => {
                             </div>
                         ) : activeTab === 'overview' && (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-6">
                                     {[
                                         { label: 'Total Devotees', val: stats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
                                         { label: 'Active Bookings', val: stats.totalCapacity, icon: Ticket, color: 'text-orange-600', bg: 'bg-orange-50' },
                                         { label: 'Reported Items', val: stats.totalLostItems, icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                                     ].map((s, idx) => (
-                                        <div key={idx} className="bg-white p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-lg transition-all group">
-                                            <div className={`${s.bg} ${s.color} w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 transition-transform`}>
+                                        <div key={idx} className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-lg transition-all group">
+                                            <div className={`${s.bg} ${s.color} w-9 h-9  md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 group-hover:scale-110 transition-transform`}>
                                                 <s.icon size={14} className="md:w-5 md:h-5" />
                                             </div>
-                                            <p className="text-slate-400 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">{s.label}</p>
-                                            <h3 className="text-base md:text-2xl font-black text-slate-800">{s.val || 0}</h3>
+                                            <p className="text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-0.5 md:mb-1">{s.label}</p>
+                                            <h3 className="text-lg md:text-2xl font-black text-slate-800">{s.val || 0}</h3>
                                         </div>
                                     ))}
                                 </div>
@@ -327,7 +335,7 @@ const AdminPage = () => {
                                             <h3 className="text-xl font-bold">Flow Distribution</h3>
                                             <button className="text-xs font-bold text-orange-600 hover:underline">Full Map</button>
                                         </div>
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
                                             {(() => {
                                                 const zoneMapping = {
                                                     1: { name: 'Mahakal', cap: 100 },
@@ -348,16 +356,16 @@ const AdminPage = () => {
                                                     const statusColor = status === 'Crit' ? 'bg-rose-100 text-rose-600' : status === 'Mod' ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600';
 
                                                     return (
-                                                        <div key={id} className="p-2 md:p-3 bg-slate-50/50 rounded-xl border border-slate-100 group hover:bg-white hover:shadow-md transition-all duration-300">
+                                                        <div key={id} className="p-3 md:p-4 bg-slate-50/50 rounded-xl border border-slate-100 group hover:bg-white hover:shadow-md transition-all duration-300">
                                                             <div className="flex justify-between items-center mb-2">
-                                                                <h4 className="font-black text-slate-900 text-[8px] uppercase tracking-tighter truncate max-w-[50px]">{meta.name}</h4>
-                                                                <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase ${statusColor}`}>
+                                                                <h4 className="font-black text-slate-900 text-xs uppercase  truncate ">{meta.name}</h4>
+                                                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${statusColor}`}>
                                                                     {status}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-baseline gap-1 mb-0.5">
-                                                                <div className="text-lg font-black text-slate-800">{count}</div>
-                                                                <div className="text-slate-400 font-bold text-[8px]">/ {meta.cap}</div>
+                                                            <div className="flex items-baseline gap-1 mb-1">
+                                                                <div className="text-lg md:text-xl font-black text-slate-800">{count}</div>
+                                                                <div className="text-slate-400 font-bold text-xs">/ {meta.cap}</div>
                                                             </div>
                                                             <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                                                                 <div className={`h-full ${status === 'Crit' ? 'bg-rose-500' : status === 'Mod' ? 'bg-orange-500' : 'bg-emerald-500'} transition-all duration-500`} style={{ width: `${Math.min(100, (count / meta.cap) * 100)}%` }}></div>
@@ -370,8 +378,8 @@ const AdminPage = () => {
                                     </div>
 
                                     <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 border border-slate-100 shadow-sm">
-                                        <div className="flex justify-between items-center mb-8">
-                                            <h3 className="text-xl font-bold">Live Activity Log</h3>
+                                        <div className="flex flex-col sm:justify-between sm:items-center gap-3 mb-6 md:mb-8">
+                                            <h3 className="text-lg md:text-xl font-bold">Live Activity Log</h3>
                                             <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-black uppercase">{lostItems.length} Recent Events</span>
                                         </div>
                                         <div className="space-y-4">
@@ -384,7 +392,7 @@ const AdminPage = () => {
                                                         <p className={`text-sm font-bold ${item.status === 'found' ? 'text-emerald-900' : 'text-orange-900'} leading-tight capitalize`}>New {item.status} Item: {item.title}</p>
                                                         <p className={`text-xs ${item.status === 'found' ? 'text-emerald-600' : 'text-orange-600'} mt-1 truncate max-w-[200px]`}>{item.description || 'No description provided.'}</p>
                                                     </div>
-                                                    <span className="ml-auto text-[10px] font-bold text-slate-400">{new Date(item.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    <span className="sm:ml-auto text-[10px] font-bold text-slate-400">{new Date(item.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                 </div>
                                             ))}
                                             {lostItems.length === 0 && (
@@ -399,16 +407,16 @@ const AdminPage = () => {
                         {activeTab === 'users' && (
                             <div className="bg-white rounded-3xl md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="p-4 md:p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/30 gap-4">
-                                    <h3 className="text-lg md:text-2xl font-black">All Devotees</h3>
-                                    <div className="relative w-full md:w-64">
+                                    <h3 className="text-lg md:text-2xl font-bold">All Devotees</h3>
+                                    <div className="relative w-full md:w-72 lg:w-80">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input type="text" placeholder="Search by name or ID..." className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:border-orange-500 outline-none w-full shadow-sm" />
+                                        <input type="text" placeholder="Search by name or ID..." className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-orange-500 outline-none w-full shadow-sm" />
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto w-full">
-                                    <table className="w-full text-left min-w-[600px]">
+                                    <table className="w-full text-left min-w-[700px]">
                                         <thead>
-                                            <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest text-[9px] md:text-[10px]">
+                                            <tr className="bg-slate-50 text-slate-400  font-black uppercase tracking-widest text-[9px] md:text-[10px]">
                                                 <th className="px-4 md:px-8 py-5">Devotee</th>
                                                 <th className="px-4 md:px-8 py-5">Category</th>
                                                 <th className="px-4 md:px-8 py-5">Status</th>
@@ -447,12 +455,12 @@ const AdminPage = () => {
                                                     <td className="px-4 md:px-8 py-4 md:py-5">
                                                         <div className="flex items-center gap-1.5 md:gap-2">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                                            <span className="text-[10px] md:text-xs font-bold text-slate-600">Registered</span>
+                                                            <span className="text-[10px] md:text-xs font-mono  text-slate-400">Registered</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 md:px-8 py-4 md:py-5 text-xs md:sm font-medium text-slate-500">{new Date(u.created_at).toLocaleDateString()}</td>
+                                                    <td className="px-4 md:px-8 py-4 md:py-5 text-xs md:text-sm font-medium text-slate-500">{new Date(u.created_at).toLocaleDateString()}</td>
 
-                                                    <td className="px-8 py-5">
+                                                    <td className="px-4 md:px-8 py-4 md:py-5">
                                                         <button className="p-2 hover:bg-white rounded-lg text-slate-300 hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">
                                                             <MoreVertical size={16} />
                                                         </button>
@@ -471,16 +479,16 @@ const AdminPage = () => {
                                     <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-[2rem] flex items-center justify-center mb-6">
                                         <Monitor size={40} />
                                     </div>
-                                    <h3 className="text-2xl font-black mb-4 tracking-tight">Main Gateway Signage</h3>
+                                    <h3 className="text-xl md:text-2xl font-black mb-4 tracking-tight">Main Gateway Signage</h3>
                                     <p className="text-slate-500 text-sm mb-8">Current active board: <strong>Safety & Density Alerts</strong></p>
 
                                     <div className="space-y-6">
-                                        <div className="flex gap-2 p-1 bg-white border border-slate-200 rounded-xl">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-1 bg-white border border-slate-200 rounded-xl ">
                                             {Object.keys(templates).map(t => (
                                                 <button
                                                     key={t}
                                                     onClick={() => setCustomAlert(templates[t])}
-                                                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${customAlert.title.toLowerCase().includes(t) ? 'bg-slate-900 text-white' : 'hover:bg-slate-50 text-slate-400'}`}
+                                                    className={` py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${customAlert.title.toLowerCase().includes(t) ? 'bg-slate-900 text-white' : 'hover:bg-slate-50 text-slate-400'}`}
                                                 >
                                                     {t}
                                                 </button>
@@ -489,7 +497,7 @@ const AdminPage = () => {
 
                                         <div className="space-y-3">
                                             <div className="group">
-                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 mb-1 block">Broadcast Title</label>
+                                                <label className="text-[10px] md:text-xs font-black uppercase tracking-[0.15em] text-slate-400 ml-1 mb-1 block">Broadcast Title</label>
                                                 <input
                                                     type="text"
                                                     value={customAlert.title}
@@ -497,21 +505,13 @@ const AdminPage = () => {
                                                     className="w-full bg-white border border-slate-200 rounded-xl h-12 px-4 text-xs font-bold outline-none focus:border-orange-500 transition-colors"
                                                 />
                                             </div>
-                                            <div className="group">
-                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 mb-1 block">Display Message</label>
-                                                <textarea
-                                                    rows="3"
-                                                    value={customAlert.message}
-                                                    onChange={(e) => setCustomAlert({ ...customAlert, message: e.target.value })}
-                                                    className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-xs font-medium outline-none focus:border-orange-500 transition-colors resize-none"
-                                                ></textarea>
-                                            </div>
-                                            <div className="flex gap-4">
+                                           
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                 {['info', 'warning', 'critical'].map(s => (
                                                     <button
                                                         key={s}
                                                         onClick={() => setCustomAlert({ ...customAlert, severity: s })}
-                                                        className={`flex-1 py-3 px-4 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all ${customAlert.severity === s ? (s === 'critical' ? 'border-rose-500 bg-rose-50 text-rose-600' : s === 'warning' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-indigo-500 bg-indigo-50 text-indigo-600') : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'}`}
+                                                        className={` py-3 px-4 rounded-xl border-2 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${customAlert.severity === s ? (s === 'critical' ? 'border-rose-500 bg-rose-50 text-rose-600' : s === 'warning' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-indigo-500 bg-indigo-50 text-indigo-600') : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'}`}
                                                     >
                                                         {s}
                                                     </button>
@@ -521,20 +521,20 @@ const AdminPage = () => {
 
                                         <button
                                             onClick={() => pushAlert(customAlert.title, customAlert.message, customAlert.severity)}
-                                            className="w-full py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0 shadow-lg shadow-slate-900/10 transition-all">
+                                            className="w-full py-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-bold text-xs md:text-sm text-center flex items-center justify-center gap-3 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0 shadow-lg shadow-slate-900/10 transition-all">
                                             <Bell size={16} className={customAlert.severity === 'critical' ? 'animate-bounce' : ''} />
                                             BROADCAST TO DIGITAL BOARDS
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-900 rounded-3xl md:rounded-[2.5rem] p-8 text-white relative flex flex-col">
-                                    <div className="flex justify-between items-center mb-8">
+                                <div className="bg-slate-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 text-white relative flex flex-col">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
                                         <h3 className="text-lg font-bold flex items-center gap-2">
                                             <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Live Active Alerts
                                         </h3>
                                         <div className="flex items-center gap-2">
-                                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[9px] font-black uppercase text-slate-400">Total: {alerts.length}</span>
+                                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] md:text-xs font-black uppercase text-slate-400">Total: {alerts.length}</span>
                                         </div>
                                     </div>
 
