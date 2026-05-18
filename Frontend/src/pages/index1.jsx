@@ -245,7 +245,7 @@ const HomePage2 = () => {
       description: "Locate lost items with AI-powered tracking and notifications",
       icon: <Search className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />,
       features: ["Item registration", "AI image matching", "Real-time alerts"],
-      link: "/lost-and-found"
+      link: "/lostFound"
     },
     {
       title: "Interactive Divine Map",

@@ -1,39 +1,22 @@
 import React, { useState, useEffect } from "react";
 import {
-  User,
-  Phone,
-  Mail,
-  ArrowRight,
-  Sparkles,
-  Zap,
-  Globe,
-  Activity,
-  ShieldCheck,
-  XCircle,
-  LayoutDashboard,
-  Calendar,
-  Compass,
-  CreditCard,
-  MapPin
+  User, Phone, Mail, ArrowRight, Sparkles, Zap, Globe, Activity,
+  ShieldCheck, XCircle, LayoutDashboard, Calendar, Compass, CreditCard, MapPin
 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import logo from "../assets/logo.png";
 import { API_V1 } from "../config/api";
 
 const Auth = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
-  const [step, setStep] = useState("initial"); // initial, registering
+  const { t } = useTranslation();
+  const [step, setStep] = useState("initial");
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    password: "",
-    userType: "Civilian",
-    age: "",
-    adminSecret: "",
-    divyangCardId: "",
+    name: "", phone: "", email: "", userType: "Civilian",
+    age: "", adminSecret: "", divyangCardId: "",
   });
   const [message, setMessage] = useState("");
   const [formErrors, setFormErrors] = useState({});
@@ -52,11 +35,9 @@ const Auth = ({ setIsAuthenticated }) => {
     try {
       const idToken = credentialResponse.credential;
       const decodedUser = jwtDecode(idToken);
-
       const response = await fetch(`${API_V1}/auth/profile`, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -64,32 +45,24 @@ const Auth = ({ setIsAuthenticated }) => {
         setIsAuthenticated(true);
         navigate("/");
       } else if (response.status === 404 || response.status === 401) {
-        setFormData({
-          name: decodedUser.name || "",
-          email: decodedUser.email || "",
-          phone: "",
-          userType: "Civilian",
-          age: "",
-          adminSecret: "",
-          divyangCardId: "",
-        });
+        setFormData({ name: decodedUser.name || "", email: decodedUser.email || "", phone: "", userType: "Civilian", age: "", adminSecret: "", divyangCardId: "" });
         setStep("registering");
       } else {
         throw new Error("Divine connection lost");
       }
     } catch (error) {
       console.error(error);
-      setMessage("Service temporarily unavailable. Please try again.");
+      setMessage(t("auth.serviceUnavailable"));
     } finally {
       setIsLoading(false);
     }
   };
 
   const featureCards = [
-    { title: "Sacred Navigation", icon: <Compass size={20} />, desc: "Navigate through holy corridors with real-time AI guidance.", color: "text-orange-600", bg: "bg-orange-50" },
-    { title: "Live Darshan", icon: <Activity size={20} />, desc: "Witness the divine presence with real-time darshan links.", color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Smart Booking", icon: <CreditCard size={20} />, desc: "Seamlessly book tickets, parking, and accommodation.", color: "text-emerald-600", bg: "bg-emerald-50" },
-    { title: "Crisis Hub", icon: <ShieldCheck size={20} />, desc: "Advanced emergency tracking and pilgrim safety portal.", color: "text-purple-600", bg: "bg-purple-50" }
+    { titleKey: "auth.features.sacredNavTitle", icon: <Compass size={20} />, descKey: "auth.features.sacredNavDesc", color: "text-orange-600", bg: "bg-orange-50" },
+    { titleKey: "auth.features.liveDarshanTitle", icon: <Activity size={20} />, descKey: "auth.features.liveDarshanDesc", color: "text-blue-600", bg: "bg-blue-50" },
+    { titleKey: "auth.features.smartBookingTitle", icon: <CreditCard size={20} />, descKey: "auth.features.smartBookingDesc", color: "text-emerald-600", bg: "bg-emerald-50" },
+    { titleKey: "auth.features.crisisHubTitle", icon: <ShieldCheck size={20} />, descKey: "auth.features.crisisHubDesc", color: "text-purple-600", bg: "bg-purple-50" }
   ];
 
   return (
@@ -324,8 +297,8 @@ const Auth = ({ setIsAuthenticated }) => {
                      <form className="space-y-4 text-left animate-in fade-in slide-in-from-right-8 duration-500">
                         <div className="space-y-3">
                           <div className="relative group">
-                             <User className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.name ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500'} transition-colors`} size={18} />
-                             <input type="text" placeholder="Full Name" value={formData.name} onChange={(e) => { setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\s]/g, "") }); setFormErrors({ ...formErrors, name: null }); }} className={`w-full bg-white border ${formErrors.name ? 'border-red-400 focus:border-red-500 shadow-[0_0_15px_rgba(248,113,113,0.1)]' : 'border-slate-200 focus:border-orange-400 focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]'} rounded-2xl h-14 pl-14 pr-6 text-slate-800 font-bold outline-none transition-all placeholder:text-slate-400`} />
+                             <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                             <input type="email" placeholder={t("auth.emailAddress")} value={formData.email} readOnly className="w-full bg-slate-50 border border-slate-100 rounded-2xl h-14 pl-14 pr-6 text-slate-500 font-medium outline-none cursor-not-allowed" />
                           </div>
                           <div className="relative group">
                              <Mail className={`absolute left-5 top-1/2 -translate-y-1/2 ${formErrors.email ? 'text-red-400' : 'text-slate-300'} transition-colors`} size={18} />
@@ -383,20 +356,19 @@ const Auth = ({ setIsAuthenticated }) => {
                                 onChange={(e) => setFormData({...formData, userType: e.target.value})}
                                 className="w-full bg-white border border-slate-200 focus:border-orange-400 rounded-xl h-12 pl-14 pr-6 text-slate-800 font-medium outline-none transition-all appearance-none cursor-pointer"
                              >
-                                <option value="Civilian">Civilian Devotee</option>
-                                <option value="Local">Local Resident</option>
-                                <option value="Aged">Senior Citizen (60+)</option>
-                                <option value="Child">Child (Under 12)</option>
-                                <option value="VIP">VIP Delegate</option>
-                                <option value="Divyang">Differently Abled (Divyang)</option>
-                                <option value="Sadhu">Sadhu / Saint</option>
-                                <option value="Admin">Administrator</option>
-                                <option value="ParkingOwner">Parking Owner</option>
+                                <option value="Civilian">{t("auth.userTypes.civilian")}</option>
+                                <option value="Local">{t("auth.userTypes.local")}</option>
+                                <option value="Aged">{t("auth.userTypes.aged")}</option>
+                                <option value="Child">{t("auth.userTypes.child")}</option>
+                                <option value="VIP">{t("auth.userTypes.vip")}</option>
+                                <option value="Divyang">{t("auth.userTypes.divyang")}</option>
+                                <option value="Sadhu">{t("auth.userTypes.sadhu")}</option>
+                                <option value="Admin">{t("auth.userTypes.admin")}</option>
+                                <option value="ParkingOwner">{t("auth.userTypes.parkingOwner")}</option>
                              </select>
                              <Globe className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={14} />
                           </div>
 
-                          {/* Conditional Fields Based on User Type */}
                           {formData.userType === "Admin" && (
                             <div className="relative group animate-in slide-in-from-top-2 duration-300">
                               <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 text-red-400" size={18} />
@@ -468,22 +440,10 @@ const Auth = ({ setIsAuthenticated }) => {
                         <button
                           onClick={async (e) => {
                             e.preventDefault();
-                            
-                            let errs = {};
-                            if (!formData.name.trim()) errs.name = true;
-                            if (formData.phone.length !== 10) errs.phone = true;
-                            if (!formData.password || formData.password.length < 6) errs.password = true;
-                            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = true;
-
-                            if(formData.userType === "Admin" && !formData.adminSecret) errs.adminSecret = true;
-                            if(formData.userType === "Divyang" && !formData.divyangCardId) errs.divyangCardId = true;
-                            if((formData.userType === "Aged" || formData.userType === "Child") && !formData.age) errs.age = true;
-
-                            if (Object.keys(errs).length > 0) {
-                               setFormErrors(errs);
-                               setMessage("Please correct the highlighted fields.");
-                               return;
-                            }
+                            if(!formData.name || !formData.phone) { setMessage(t("auth.fillRequiredFields")); return; }
+                            if(formData.userType === "Admin" && !formData.adminSecret) { setMessage(t("auth.adminSecretRequired")); return; }
+                            if(formData.userType === "Divyang" && !formData.divyangCardId) { setMessage(t("auth.divyangCardRequired")); return; }
+                            if((formData.userType === "Aged" || formData.userType === "Child") && !formData.age) { setMessage(t("auth.ageRequired")); return; }
 
                             setIsLoading(true);
                             try {
@@ -499,16 +459,16 @@ const Auth = ({ setIsAuthenticated }) => {
                                 setIsAuthenticated(true);
                                 navigate("/");
                               } else { setMessage(data.message); }
-                            } catch (err) { setMessage("Registration failed. Try again."); }
+                            } catch (err) { setMessage(t("auth.registrationFailed")); }
                             finally { setIsLoading(false); }
                           }}
                           className="w-full h-10 sm:h-12 bg-slate-900 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm md:text-base active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 shadow-md mt-3"
                           disabled={isLoading}
                         >
-                          {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>Complete Profile <ArrowRight size={18} /></>}
+                          {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <>{t("auth.completeProfileBtn")} <ArrowRight size={18} /></>}
                         </button>
                         
-                        <button type="button" onClick={() => setStep("initial")} className="w-full text-center text-slate-400 font-bold text-[10px] uppercase tracking-widest pt-4 hover:text-slate-900 transition-colors">Return to Login</button>
+                        <button type="button" onClick={() => setStep("initial")} className="w-full text-center text-slate-400 font-bold text-[10px] uppercase tracking-widest pt-4 hover:text-slate-900 transition-colors">{t("auth.returnToLogin")}</button>
                      </form>
                    )}
 
